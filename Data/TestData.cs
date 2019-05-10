@@ -27,6 +27,12 @@ namespace HeyDo.Data
             ContactPreference = ContactType.Email
         };
 
+        public static List<User> TestUsers = new List<User>()
+        {
+            Emailtests,
+            Contests
+        };
+
         public static TaskItem Insta = new TaskItem
         {
             Id = "1",
@@ -49,6 +55,13 @@ namespace HeyDo.Data
             UserId = "1",
             Title = "Drum Video",
             TaskDetails = "Upload a drumming video clip to instagram"
+        };
+
+        public static List<TaskItem> TestTasks = new List<TaskItem>()
+        {
+            Insta,
+            Facepic,
+            ForConTests
         };
 
         public static MessageData TestEmail = new MessageData
