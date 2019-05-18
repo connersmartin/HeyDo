@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using HeyDo.Models;
 using HeyDo.Data;
 using HeyDo.Messaging;
+using Microsoft.AspNetCore.Authorization;
+using Newtonsoft.Json;
 
 namespace HeyDo.Controllers
 {
@@ -18,6 +20,7 @@ namespace HeyDo.Controllers
         }
 
         //Sends a text message
+
         public void SendText()
         {
             SmsAgent.TwiSend(TestData.TestSms);
@@ -27,6 +30,12 @@ namespace HeyDo.Controllers
         public void SendEmail()
         {
             var success = EmailAgent.SendMail(TestData.TestEmail);
+        }
+
+        public async void AddData()
+        {
+
+            var json = JsonConvert.SerializeObject(TestData.Contests);
         }
 
         //Add a new user

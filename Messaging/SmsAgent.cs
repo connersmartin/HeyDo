@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
 using Twilio;
 using HeyDo.Data;
 using HeyDo.Models;
+using Microsoft.Extensions.Configuration;
 using Twilio.Rest.Api.V2010.Account;
 
 namespace HeyDo.Messaging
@@ -17,7 +19,7 @@ namespace HeyDo.Messaging
         /// <param name="messageData">Should only be sending to number and subject + text from email</param>
         public static void TwiSend(MessageData messageData)
         {
-            var ownPhone = "";
+            var ownPhone = ""; 
             const string accountSid = "";
             const string authToken = "";
 

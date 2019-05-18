@@ -12,7 +12,7 @@ namespace HeyDo.Data
             Id = "1",
             FirstName = "Test",
             LastName = "Tests",
-            email = "",
+            email = "test@test.com",
             Phone = "",
             ContactPreference = ContactType.Phone
         };
@@ -22,7 +22,7 @@ namespace HeyDo.Data
             Id = "2",
             FirstName = "Email",
             LastName = "Tests",
-            email = "",
+            email = "test2@test.com",
             Phone = "",
             ContactPreference = ContactType.Email
         };

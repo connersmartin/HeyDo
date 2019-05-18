@@ -17,6 +17,13 @@ $("#sendemail").click(function () {
     });
 });
 
+$("#adddata").click(function () {
+    $.ajax({
+        url: "Home/AddData",
+        success: function () { alert("Data Added!"); }
+    });
+});
+
 $("#login").click(function () {
     firebase.auth().createUserWithEmailAndPassword($("#log").val, $("#pass").val).catch(function (error) {
         // Handle Errors here.
