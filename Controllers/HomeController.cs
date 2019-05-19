@@ -35,17 +35,29 @@ namespace HeyDo.Controllers
         //Sends an email
         public void SendEmail()
         {
-            var success = EmailAgent.SendMail(TestData.TestEmail);
+            var success = EmailAgent.SendMail(TestData.TestSms);
         }
 
-        public async void AddData()
+        public async void AddData(string uid, string auth, string dataType)
         {
-            var json = JsonConvert.SerializeObject(TestData.Contests);
+            //test data
+            var data = TestData.Contests;
+
+            var json = JsonConvert.SerializeObject(data);
+
+            var url = dataType+"/" + uid + "/" + data.Id;
+
+            await DataAccess.ApiGoogle("PUT", json, url, auth);
         }
 
-        public async void GetData()
+        public async void GetData(string uid, string auth, string dataType)
         {
-            var json = JsonConvert.SerializeObject(TestData.Contests);
+            var url = dataType + "/" + uid;
+
+            var data = await DataAccess.ApiGoogle("GET", "", url, auth);
+
+            var dataList = JsonConvert.DeserializeObject<List<User>>(data.ToString());
+
         }
 
         //Add a new user

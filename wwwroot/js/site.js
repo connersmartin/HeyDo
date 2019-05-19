@@ -5,7 +5,7 @@
 
 // Your web app's Firebase configuration
 var firebaseConfig = {
-    
+
 };
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
@@ -26,8 +26,23 @@ $("#sendemail").click(function () {
 
 $("#adddata").click(function () {
     $.ajax({
-        url: "Home/AddData",
+        url: "AddData",
+        data: {
+            uid: firebase.auth().currentUser.uid,
+            auth: firebase.auth().currentUser.ra
+        },
         success: function () { alert("Data Added!"); }
+    });
+});
+
+$("#getdata").click(function () {
+    $.ajax({
+        url: "GetData",
+        data: {
+            uid: firebase.auth().currentUser.uid,
+            auth: firebase.auth().currentUser.ra
+        },
+        success: function () { alert("Data Gotten!"); }
     });
 });
 
@@ -49,9 +64,10 @@ $("#login").click(function () {
         // Handle Errors here.
         var errorCode = error.code;
         var errorMessage = error.message;
+        alert("something happened: " + errorCode + " : " + errorMessage);
     // ...
     });
-    window.location.href = 'Home/Dashboard';
+    //window.location.href = 'Home/Dashboard';
 });
 
 $("#logout").click(function () {

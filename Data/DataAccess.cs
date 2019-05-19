@@ -16,9 +16,9 @@ namespace HeyDo.Data
         private static string baseUrl = "";
         
         //TODO clean up and test
-        public static async Task<JObject> ApiGoogle(string method, string json, string sub)
+        public static async Task<JObject> ApiGoogle(string method, string json, string sub, string auth)
         {
-            var url = baseUrl + sub + ".json";
+            var url = baseUrl + sub + ".json?auth="+auth;
             var res = new HttpResponseMessage();
             switch (method)
             {
