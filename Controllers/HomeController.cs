@@ -10,11 +10,17 @@ using HeyDo.Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json;
 
+
 namespace HeyDo.Controllers
 {
     public class HomeController : Controller
     {
         public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult Dashboard()
         {
             return View();
         }
@@ -34,7 +40,11 @@ namespace HeyDo.Controllers
 
         public async void AddData()
         {
+            var json = JsonConvert.SerializeObject(TestData.Contests);
+        }
 
+        public async void GetData()
+        {
             var json = JsonConvert.SerializeObject(TestData.Contests);
         }
 

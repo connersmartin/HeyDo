@@ -3,7 +3,6 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="google-signin-client_id" content="746759992102-q1sasbffnofgf0bkehi1b279rp23uaqd.apps.googleusercontent.com">
     <title>@ViewData["Title"] - HeyDo</title>
 
     <environment include="Development">
@@ -17,18 +16,13 @@
               integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" />
     </environment>
     <link rel="stylesheet" href="~/css/site.css" />
-    <script src="https://apis.google.com/js/platform.js" async defer></script>
     <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
     <script src="https://www.gstatic.com/firebasejs/6.0.2/firebase-app.js"></script>
 
     <!-- Add Firebase products that you want to use -->
     <script src="https://www.gstatic.com/firebasejs/6.0.2//firebase-auth.js"></script>
     <script>
-        // Your web app's Firebase configuration
-        var firebaseConfig = {
-        };
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+
     </script>
  </head>
 <body>
@@ -40,6 +34,7 @@
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+                <button id="logout">Log out</button>
                 <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
                     <partial name="_LoginPartial" />
                     <ul class="navbar-nav flex-grow-1">
