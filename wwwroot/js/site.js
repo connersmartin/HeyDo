@@ -10,6 +10,18 @@ var firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
+$("#setSession").click(function () {
+    $.ajax({
+        url: "SetSession",
+        data: {
+            uid: firebase.auth().currentUser.uid,
+            auth: firebase.auth().currentUser.ra
+        },
+        success: function () { alert("Session Set!"); }
+    });
+});
+
+
 $("#sendsms").click(function () {
     $.ajax({
         url: "Home/SendText",
@@ -29,7 +41,8 @@ $("#adddata").click(function () {
         url: "AddData",
         data: {
             uid: firebase.auth().currentUser.uid,
-            auth: firebase.auth().currentUser.ra
+            auth: firebase.auth().currentUser.ra,
+            dataType:"User"
         },
         success: function () { alert("Data Added!"); }
     });

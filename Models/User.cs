@@ -5,11 +5,7 @@ using System.Threading.Tasks;
 
 namespace HeyDo.Models
 {
-    public enum ContactType
-    {
-        Phone,
-        Email
-    }
+
     public class User:SimpleUser
     {
         public string Id { get; set; }
@@ -17,7 +13,7 @@ namespace HeyDo.Models
         public string LastName { get; set; }
         public string Phone { get; set; }
  
-        public ContactType ContactPreference { get; set; }
+        public Enums.ContactType ContactPreference { get; set; }
 
     }
 }

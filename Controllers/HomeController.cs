@@ -9,12 +9,17 @@ using HeyDo.Data;
 using HeyDo.Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 
 namespace HeyDo.Controllers
 {
     public class HomeController : Controller
     {
+        public void SetSession(string auth, string uid)
+        {
+            //TODO figure out how to freaking set session variables in dot net core
+        }
         public IActionResult Index()
         {
             return View();
@@ -38,12 +43,16 @@ namespace HeyDo.Controllers
             var success = EmailAgent.SendMail(TestData.TestSms);
         }
 
-        public async void AddData(string uid, string auth, string dataType)
+        public async void AddData(string uid, string auth, Enums.DataType dataType)
         {
             //test data
             var data = TestData.Contests;
 
             var json = JsonConvert.SerializeObject(data);
+
+            var obData = JsonConvert.DeserializeObject<JObject>(json);
+
+            //var url = dataType + "/" + uid + "/" + obData["Id"];
 
             var url = dataType+"/" + uid + "/" + data.Id;
 
