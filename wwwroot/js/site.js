@@ -5,7 +5,7 @@
 
 // Your web app's Firebase configuration
 var firebaseConfig = {
-
+    
 };
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
@@ -62,18 +62,34 @@ $("#getdata").click(function () {
 $("#create").click(function () {
     var log = $("#logCreate").val();
     var pas = $("#passCreate").val();
-    var auth = firebase.auth().createUserWithEmailAndPassword(log, pas).catch(function (error) {
-        // Handle Errors here.
-        var errorCode = error.code;
-        var errorMessage = error.message;
-        // ...
-    });
+    firebase.auth().createUserWithEmailAndPassword(log, pas).then(function () {
+            logUser();
+        },
+        function(error) {
+            // Handle Errors here.
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            // ...
+        });
 });
+
+function logUser() {
+    $.ajax({
+        url: "Home/SetSession",
+        data: {
+            uid: firebase.auth().currentUser.uid,
+            auth: firebase.auth().currentUser.ra
+        },
+        success: function () { alert("Session Set!"); }
+    });
+}
 
 $("#login").click(function () {
     var log = $("#logIn").val();
     var pas = $("#passIn").val();
-    firebase.auth().signInWithEmailAndPassword(log, pas).catch(function (error) {
+    firebase.auth().signInWithEmailAndPassword(log, pas).then(function() {
+        logUser();
+    },function (error) {
         // Handle Errors here.
         var errorCode = error.code;
         var errorMessage = error.message;

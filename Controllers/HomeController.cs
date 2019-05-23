@@ -8,6 +8,7 @@ using HeyDo.Models;
 using HeyDo.Data;
 using HeyDo.Messaging;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -16,9 +17,17 @@ namespace HeyDo.Controllers
 {
     public class HomeController : Controller
     {
+        public const string SessionKeyUid = "_Uid";
+        public const string SessionKeyAuth = "_Auth";
         public void SetSession(string auth, string uid)
         {
             //TODO figure out how to freaking set session variables in dot net core
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString(SessionKeyUid)))
+            {
+                HttpContext.Session.SetString(SessionKeyUid, uid);
+                HttpContext.Session.SetString(SessionKeyAuth, auth);
+            }
+            
         }
         public IActionResult Index()
         {
@@ -45,6 +54,9 @@ namespace HeyDo.Controllers
 
         public async void AddData(string uid, string auth, Enums.DataType dataType)
         {
+            var sUid = HttpContext.Session.GetString(SessionKeyUid);
+            var sAuth = HttpContext.Session.GetString(SessionKeyAuth);
+
             //test data
             var data = TestData.Contests;
 
@@ -54,9 +66,9 @@ namespace HeyDo.Controllers
 
             //var url = dataType + "/" + uid + "/" + obData["Id"];
 
-            var url = dataType+"/" + uid + "/" + data.Id;
+            var url = dataType+"/" + HttpContext.Session.GetString(SessionKeyUid) + "/" + data.Id;
 
-            await DataAccess.ApiGoogle("PUT", json, url, auth);
+            await DataAccess.ApiGoogle("PUT", json, url, HttpContext.Session.GetString(SessionKeyAuth));
         }
 
         public async void GetData(string uid, string auth, string dataType)

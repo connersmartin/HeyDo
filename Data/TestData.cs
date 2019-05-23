@@ -14,7 +14,7 @@ namespace HeyDo.Data
             LastName = "Tests",
             email = "test@test.com",
             Phone = "",
-            ContactPreference = ContactType.Phone
+            ContactPreference = Enums.ContactType.Phone
         };
 
         public static User Emailtests = new User
@@ -24,7 +24,7 @@ namespace HeyDo.Data
             LastName = "Tests",
             email = "test2@test.com",
             Phone = "",
-            ContactPreference = ContactType.Email
+            ContactPreference = Enums.ContactType.Email
         };
 
         public static List<User> TestUsers = new List<User>()
