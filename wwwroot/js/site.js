@@ -5,17 +5,16 @@
 
 // Your web app's Firebase configuration
 var firebaseConfig = {
-    
+
 };
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
 $("#setSession").click(function () {
     $.ajax({
-        url: "SetSession",
+        url: "Auth/Google",
         data: {
-            uid: firebase.auth().currentUser.uid,
-            auth: firebase.auth().currentUser.ra
+            idToken: firebase.auth().currentUser.ra
         },
         success: function () { alert("Session Set!"); }
     });
@@ -24,21 +23,21 @@ $("#setSession").click(function () {
 
 $("#sendsms").click(function () {
     $.ajax({
-        url: "Home/SendText",
+        url: "Message/SendText",
         success: function () { alert("SMS Sent!"); }
     });
 });
 
 $("#sendemail").click(function () {
     $.ajax({
-        url: "Home/SendEmail",
+        url: "Message/SendEmail",
         success: function () { alert("Email Sent!"); }
     });
 });
 
 $("#adddata").click(function () {
     $.ajax({
-        url: "AddData",
+        url: "Data/AddData",
         data: {
             uid: firebase.auth().currentUser.uid,
             auth: firebase.auth().currentUser.ra,
@@ -50,7 +49,7 @@ $("#adddata").click(function () {
 
 $("#getdata").click(function () {
     $.ajax({
-        url: "GetData",
+        url: "Data/GetData",
         data: {
             uid: firebase.auth().currentUser.uid,
             auth: firebase.auth().currentUser.ra
@@ -75,10 +74,9 @@ $("#create").click(function () {
 
 function logUser() {
     $.ajax({
-        url: "Home/SetSession",
+        url: "Auth/Google",
         data: {
-            uid: firebase.auth().currentUser.uid,
-            auth: firebase.auth().currentUser.ra
+            idToken: firebase.auth().currentUser.ra
         },
         success: function () { alert("Session Set!"); }
     });
@@ -87,17 +85,38 @@ function logUser() {
 $("#login").click(function () {
     var log = $("#logIn").val();
     var pas = $("#passIn").val();
-    firebase.auth().signInWithEmailAndPassword(log, pas).then(function() {
-        logUser();
-    },function (error) {
-        // Handle Errors here.
+    firebase.auth().signInWithEmailAndPassword(log, pas).then(function (result) {
+        var token = result.user.ra;
+        var user = result.user;
+        alert("login OK");
+        logUser(token);
+    }).catch(function (error) {
         var errorCode = error.code;
         var errorMessage = error.message;
-        alert("something happened: " + errorCode + " : " + errorMessage);
-    // ...
+        alert(errorCode + " - " + errorMessage);
     });
-    //window.location.href = 'Home/Dashboard';
 });
+
+function loginAPI(token) {
+    window.location.href = "Home/Dashboard"
+    $.ajax({
+        url: "/Home/Dashboard",
+        dataType: 'json',
+        type: 'GET',
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader("Accept", "application/json");
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("Authorization", "Bearer " + token);
+        },
+        error: function (ex) {
+            console.log(ex.status + " - " + ex.statusText);
+        },
+        success: function (data) {
+            console.log(data);
+            return data;
+        }
+    });
+}
 
 $("#logout").click(function () {
     firebase.auth().signOut().then(function () {

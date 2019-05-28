@@ -32,14 +32,6 @@ namespace HeyDo
         {
             services.AddDistributedMemoryCache();
 
-            services.AddSession(options =>
-            {
-                // Set a short timeout for easy testing.
-                options.IdleTimeout = TimeSpan.FromSeconds(100);
-                options.Cookie.HttpOnly = true;
-                // Make the session cookie essential
-                options.Cookie.IsEssential = true;
-            });
             services.Configure<CookiePolicyOptions>(options =>
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
@@ -77,9 +69,6 @@ namespace HeyDo
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
-            app.UseAuthentication();
-            app.UseSession();
-
             app.UseMvc(routes =>
             {
                 routes.MapRoute(

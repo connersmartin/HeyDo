@@ -11,97 +11,77 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
+using System.Net.Http;
 
 namespace HeyDo.Controllers
 {
     public class HomeController : Controller
     {
-        public const string SessionKeyUid = "_Uid";
-        public const string SessionKeyAuth = "_Auth";
-        public void SetSession(string auth, string uid)
-        {
-            //TODO figure out how to freaking set session variables in dot net core
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString(SessionKeyUid)))
-            {
-                HttpContext.Session.SetString(SessionKeyUid, uid);
-                HttpContext.Session.SetString(SessionKeyAuth, auth);
-            }
-            
-        }
         public IActionResult Index()
         {
             return View();
         }
-
+       
+        // This should give an at a glance thing for an admin
+        //Current users/tasks, links to add/edit/remove things
+        //view past tasks etc
         public IActionResult Dashboard()
         {
-            return View();
-        }
-
-        //Sends a text message
-
-        public void SendText()
-        {
-            SmsAgent.TwiSend(TestData.TestSms);
-        }
-
-        //Sends an email
-        public void SendEmail()
-        {
-            var success = EmailAgent.SendMail(TestData.TestSms);
-        }
-
-        public async void AddData(string uid, string auth, Enums.DataType dataType)
-        {
-            var sUid = HttpContext.Session.GetString(SessionKeyUid);
-            var sAuth = HttpContext.Session.GetString(SessionKeyAuth);
-
-            //test data
-            var data = TestData.Contests;
-
-            var json = JsonConvert.SerializeObject(data);
-
-            var obData = JsonConvert.DeserializeObject<JObject>(json);
-
-            //var url = dataType + "/" + uid + "/" + obData["Id"];
-
-            var url = dataType+"/" + HttpContext.Session.GetString(SessionKeyUid) + "/" + data.Id;
-
-            await DataAccess.ApiGoogle("PUT", json, url, HttpContext.Session.GetString(SessionKeyAuth));
-        }
-
-        public async void GetData(string uid, string auth, string dataType)
-        {
-            var url = dataType + "/" + uid;
-
-            var data = await DataAccess.ApiGoogle("GET", "", url, auth);
-
-            var dataList = JsonConvert.DeserializeObject<List<User>>(data.ToString());
-
+             return View();
         }
 
         //Add a new user
-        public IActionResult NewUser()
+        public async Task<IActionResult> NewUser(string uid, string auth, User user)
         {
+            var jData = JsonConvert.SerializeObject(user);
+            var data = await DataController.AddData(uid, auth, Enums.DataType.Users, jData);
+
             return View();
         }
 
         //Add a new task
-        public IActionResult NewTask()
+        public async Task<IActionResult> NewTask(string uid, string auth, TaskItem task)
         {
+            var jData = JsonConvert.SerializeObject(task);
+            var data = await DataController.AddData(uid, auth, Enums.DataType.Tasks, jData);
+
             return View();
         }
 
         //View all users
-        public IActionResult ViewUsers()
+        public async Task<IActionResult> ViewUsers(string uid, string auth)
         {
+            //Real life
+            /*
+            var data = await DataController.GetData(uid, auth, Enums.DataType.Users);
+
+            var userList = new List<User>();
+            foreach (var user in data)
+            {
+                userList.Add(user.ToObject<User>());
+            }
+
+            return View(userList);
+            */
+            //Test data
             return View(TestData.TestUsers);
         }
 
         //View all tasks
-        public IActionResult ViewTasks()
+        public async Task<IActionResult> ViewTasks(string uid, string auth)
         {
+            //Real life
+            /*
+            var data = await DataController.GetData(uid, auth, Enums.DataType.Tasks);
+
+            var taskList = new List<TaskItem>();
+            foreach (var task in data)
+            {
+                taskList.Add(task.ToObject<TaskItem>());
+            }
+            return View(taskList);
+            */
+            //Test data
             return View(TestData.TestTasks);
         }
 
