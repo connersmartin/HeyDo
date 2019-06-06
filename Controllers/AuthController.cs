@@ -5,16 +5,34 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using FirebaseAdmin;
 using FirebaseAdmin.Auth;
+using Google.Apis.Auth.OAuth2;
 
 namespace HeyDo.Controllers
 {
     public class AuthController : Controller
     {
-        public string Google(string idToken)
+        public static async Task<string> Google(string idToken)
         {
             //TODO can theoretically check id token here and return uid
+            //need to figure out how to log out of this though
+            try
+            {
+                FirebaseApp.Create(new AppOptions()
+                {
+                    Credential = GoogleCredential.FromJson(""),
+                });
 
-            return null;
+                var decoded = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(idToken);
+                var uid = decoded.Uid;
+
+                return uid;
+            }
+            catch (Exception e)
+            {
+
+                throw;
+            }
+            
         }
     }
 }

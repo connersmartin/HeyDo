@@ -5,20 +5,10 @@
 
 // Your web app's Firebase configuration
 var firebaseConfig = {
-
 };
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
-$("#setSession").click(function () {
-    $.ajax({
-        url: "Auth/Google",
-        data: {
-            idToken: firebase.auth().currentUser.ra
-        },
-        success: function () { alert("Session Set!"); }
-    });
-});
 
 
 $("#sendsms").click(function () {
@@ -62,34 +52,30 @@ $("#create").click(function () {
     var log = $("#logCreate").val();
     var pas = $("#passCreate").val();
     firebase.auth().createUserWithEmailAndPassword(log, pas).then(function () {
-            logUser();
+            loginAPI();
         },
         function(error) {
-            // Handle Errors here.
             var errorCode = error.code;
             var errorMessage = error.message;
-            // ...
+            alert(errorCode + " - " + errorMessage);
         });
 });
 
-function logUser() {
-    $.ajax({
-        url: "Auth/Google",
-        data: {
-            idToken: firebase.auth().currentUser.ra
-        },
-        success: function () { alert("Session Set!"); }
-    });
-}
+$("#createLog").click(function () {
+    $(".Login").hide();
+    $(".Create").show();
+});
+
+$("#reallyLog").click(function () {
+    $(".Login").show();
+    $(".Create").hide();
+});
 
 $("#login").click(function () {
     var log = $("#logIn").val();
     var pas = $("#passIn").val();
     firebase.auth().signInWithEmailAndPassword(log, pas).then(function (result) {
-        var token = result.user.ra;
-        var user = result.user;
-        alert("login OK");
-        logUser(token);
+        loginAPI();
     }).catch(function (error) {
         var errorCode = error.code;
         var errorMessage = error.message;
@@ -97,23 +83,23 @@ $("#login").click(function () {
     });
 });
 
-function loginAPI(token) {
-    window.location.href = "Home/Dashboard"
+
+function loginAPI() {
     $.ajax({
         url: "/Home/Dashboard",
-        dataType: 'json',
         type: 'GET',
         beforeSend: function (xhr) {
             xhr.setRequestHeader("Accept", "application/json");
             xhr.setRequestHeader("Content-Type", "application/json");
-            xhr.setRequestHeader("Authorization", "Bearer " + token);
+            xhr.setRequestHeader("Uid", firebase.auth().currentUser.uid);
+            xhr.setRequestHeader("Token", firebase.auth().currentUser.ra);
         },
         error: function (ex) {
-            console.log(ex.status + " - " + ex.statusText);
+            alert("error? "+ex.status + " - " + ex.statusText);
         },
         success: function (data) {
-            console.log(data);
-            return data;
+            $(".log").hide();
+            $(".Dashboard").html(data);
         }
     });
 }

@@ -17,17 +17,45 @@ namespace HeyDo.Controllers
 {
     public class HomeController : Controller
     {
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
-       
+        [HttpPost]
+        public IActionResult Index(Auth auth)
+        {
+
+            return View("Dashboard",auth);
+        }
+
+        public IActionResult Create()
+        {
+
+            return PartialView();
+        }
+
         // This should give an at a glance thing for an admin
         //Current users/tasks, links to add/edit/remove things
         //view past tasks etc
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
-             return View();
+            var rq = HttpContext.Request.Headers;
+
+            var a = rq["uid"];
+            var b = rq["token"];
+
+            if (a == await AuthController.Google(b))
+            {
+             return PartialView(new Auth() { Uid = a, Token = b });
+
+            }
+            else
+            {
+                return View("Index", null);
+            }
+            
+            
         }
 
         //Add a new user

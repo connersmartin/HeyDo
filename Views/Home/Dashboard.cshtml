@@ -1,4 +1,4 @@
-﻿
+﻿@model HeyDo.Models.Auth
 @{
     ViewData["Title"] = "Dashboard";
 }
@@ -13,4 +13,11 @@
     <button id="sendemail">Send email</button>
     <button id="adddata">Add data</button>
     <button id="getdata">get data</button>
+</div>
+
+<div>
+    @Model.Token    
+</div>
+<div>
+    @Model.Uid
 </div>
