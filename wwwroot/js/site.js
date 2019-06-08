@@ -5,48 +5,10 @@
 
 // Your web app's Firebase configuration
 var firebaseConfig = {
+
 };
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
-
-
-
-$("#sendsms").click(function () {
-    $.ajax({
-        url: "Message/SendText",
-        success: function () { alert("SMS Sent!"); }
-    });
-});
-
-$("#sendemail").click(function () {
-    $.ajax({
-        url: "Message/SendEmail",
-        success: function () { alert("Email Sent!"); }
-    });
-});
-
-$("#adddata").click(function () {
-    $.ajax({
-        url: "Data/AddData",
-        data: {
-            uid: firebase.auth().currentUser.uid,
-            auth: firebase.auth().currentUser.ra,
-            dataType:"User"
-        },
-        success: function () { alert("Data Added!"); }
-    });
-});
-
-$("#getdata").click(function () {
-    $.ajax({
-        url: "Data/GetData",
-        data: {
-            uid: firebase.auth().currentUser.uid,
-            auth: firebase.auth().currentUser.ra
-        },
-        success: function () { alert("Data Gotten!"); }
-    });
-});
 
 $("#create").click(function () {
     var log = $("#logCreate").val();

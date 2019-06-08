@@ -57,17 +57,38 @@ namespace HeyDo.Controllers
             
             
         }
+        [HttpGet]
+        public async Task<IActionResult> NewUser(string uid, string auth)
+        {
+            var rq = HttpContext.Request.Headers;
+
+            var a = rq["uid"];
+            var b = rq["token"];
+            return View();
+        }
 
         //Add a new user
+        [HttpPost]
         public async Task<IActionResult> NewUser(string uid, string auth, User user)
         {
+            var rq = HttpContext.Request.Headers;
+
+            var a = rq["uid"];
+            var b = rq["token"];
+
             var jData = JsonConvert.SerializeObject(user);
             var data = await DataController.AddData(uid, auth, Enums.DataType.Users, jData);
 
             return View();
         }
+        [HttpGet]
+        public async Task<IActionResult> NewTask(string uid, string auth)
+        {
+             return View();
+        }
 
         //Add a new task
+        [HttpPost]
         public async Task<IActionResult> NewTask(string uid, string auth, TaskItem task)
         {
             var jData = JsonConvert.SerializeObject(task);

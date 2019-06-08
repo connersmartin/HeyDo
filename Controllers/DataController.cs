@@ -19,7 +19,7 @@ namespace HeyDo.Controllers
         /// <param name="auth">Google auth token</param>
         /// <param name="dataType">User, Task, Usertask</param>
         /// <returns></returns>
-        public static async Task<string> AddData(string uid, string auth, Enums.DataType dataType, string jData)
+        public static async Task<string> AddData(string uid, string auth, Enums.DataType dataType, string jData, bool update = false)
         {
             //test data
             var data = TestData.Contests;
@@ -32,7 +32,9 @@ namespace HeyDo.Controllers
 
             var url = dataType + "/" + uid + "/" + data.Id;
 
-            var res = await DataAccess.ApiGoogle("PUT", json, url, auth);
+            var action = update ? "PATCH" : "PUT";
+
+            var res = await DataAccess.ApiGoogle(action, json, url, auth);
 
             return res.ToString();
             
@@ -52,6 +54,19 @@ namespace HeyDo.Controllers
 
             return JsonConvert.DeserializeObject<List<JObject>>(data.ToString());
 
+        }
+        /// <summary>
+        /// Deletes given data
+        /// </summary>
+        /// <param name="uid"></param>
+        /// <param name="auth"></param>
+        /// <param name="dataType"></param>
+        /// <returns>something maybe</returns>
+        public static async Task<string> DeleteData(string uid, string auth, Enums.DataType dataType)
+        {
+            var data = await DataAccess.ApiGoogle("DELETE", "", "", auth);
+
+            return data.ToString();
         }
     }
 }

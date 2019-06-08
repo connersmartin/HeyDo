@@ -3,16 +3,19 @@
     ViewData["Title"] = "Dashboard";
 }
 
-
-
 <h1>Dashboard</h1>
-
 <div>
-    <h3>Testing</h3>
-    <button id="sendsms">Send sms</button>
-    <button id="sendemail">Send email</button>
-    <button id="adddata">Add data</button>
-    <button id="getdata">get data</button>
+    <ul>
+        <li id="addUser">Add User</li>
+        <li id="addTask">Add Tasks</li>
+    </ul>
+</div>
+<div>
+    <ul>
+        <li id="viewUsers">View Users</li>
+        <li id="viewTasks">View Tasks</li>
+        <li id="viewHistory">View History</li>
+    </ul>
 </div>
 
 <div>
@@ -21,3 +24,5 @@
 <div>
     @Model.Uid
 </div>
+
+<script type="text/javascript" src="~/js/Dashboard.js"></script>
