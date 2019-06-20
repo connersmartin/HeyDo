@@ -19,22 +19,22 @@ namespace HeyDo.Controllers
         /// <param name="auth">Google auth token</param>
         /// <param name="dataType">User, Task, Usertask</param>
         /// <returns></returns>
-        public static async Task<string> AddData(string uid, string auth, Enums.DataType dataType, string jData, bool update = false)
+        public static async Task<string> AddData(Dictionary<string, string> auth, Enums.DataType dataType, string jData, bool update = false)
         {
             //test data
-            var data = TestData.Contests;
+            //var data = TestData.Contests;
 
-            var json = JsonConvert.SerializeObject(data);
+            //var json = JsonConvert.SerializeObject(data);
 
-            var obData = JsonConvert.DeserializeObject<JObject>(json);
+            var obData = JsonConvert.DeserializeObject<JObject>(jData);
 
-            //var url = dataType + "/" + uid + "/" + obData["Id"];
+            var url = dataType + "/" + auth["uid"] + "/" + obData["Id"];
 
-            var url = dataType + "/" + uid + "/" + data.Id;
+            //var url = dataType + "/" + auth["uid"] + "/" + data.Id;
 
             var action = update ? "PATCH" : "PUT";
 
-            var res = await DataAccess.ApiGoogle(action, json, url, auth);
+            var res = await DataAccess.ApiGoogle(action, jData, url, auth);
 
             return res.ToString();
             
@@ -46,13 +46,20 @@ namespace HeyDo.Controllers
         /// <param name="auth">Google atuh token</param>
         /// <param name="dataType">User, Task, Usertask</param>
         /// <returns></returns>
-        public static async Task<List<JObject>> GetData(string uid, string auth, Enums.DataType dataType)
+        public static async Task<List<JObject>> GetData(Dictionary<string,string> auth, Enums.DataType dataType)
         {
-            var url = dataType + "/" + uid;
+            var list = new List<JObject>();
+
+            var url = dataType + "/" + auth["uid"];
 
             var data = await DataAccess.ApiGoogle("GET", "", url, auth);
 
-            return JsonConvert.DeserializeObject<List<JObject>>(data.ToString());
+            foreach (var o in data)
+            {
+                list.Add(o.Value.ToObject<JObject>());
+            }
+
+            return list;
 
         }
         /// <summary>
@@ -62,7 +69,7 @@ namespace HeyDo.Controllers
         /// <param name="auth"></param>
         /// <param name="dataType"></param>
         /// <returns>something maybe</returns>
-        public static async Task<string> DeleteData(string uid, string auth, Enums.DataType dataType)
+        public static async Task<string> DeleteData(Dictionary<string, string> auth, Enums.DataType dataType)
         {
             var data = await DataAccess.ApiGoogle("DELETE", "", "", auth);
 

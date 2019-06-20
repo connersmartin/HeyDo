@@ -5,10 +5,17 @@
 
 // Your web app's Firebase configuration
 var firebaseConfig = {
-
+   
 };
-// Initialize Firebase
+// Initialize Firebase only once
+if (firebase.apps.length===0) {
 firebase.initializeApp(firebaseConfig);
+}
+//if already logged in go to dashboard
+if (firebase.auth().currentUser !== null) {
+    loginAPI();
+}
+
 
 $("#create").click(function () {
     var log = $("#logCreate").val();
@@ -48,11 +55,12 @@ $("#login").click(function () {
 
 function loginAPI() {
     $.ajax({
-        url: "/Home/Dashboard",
-        type: 'GET',
+        url: "/Home/SetAuth",
+        type: 'POST',
         beforeSend: function (xhr) {
             xhr.setRequestHeader("Accept", "application/json");
             xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("Authorization", "Bearer " + firebase.auth().currentUser.ra);
             xhr.setRequestHeader("Uid", firebase.auth().currentUser.uid);
             xhr.setRequestHeader("Token", firebase.auth().currentUser.ra);
         },
@@ -60,18 +68,26 @@ function loginAPI() {
             alert("error? "+ex.status + " - " + ex.statusText);
         },
         success: function (data) {
-            $(".log").hide();
-            $(".Dashboard").html(data);
+            window.location.href = "../Home/Dashboard";
         }
     });
 }
 
 $("#logout").click(function () {
+    $.ajax({
+        url: "/Home/Logout",
+        type: 'POST'
+
+    });
     firebase.auth().signOut().then(function () {
         alert("logged out");
+        
         // Sign-out successful.
     }).catch(function (error) {
         alert("was not able to log out: " + error);
         // An error happened.
     });
+    window.location.href = "../Home/Index";
 });
+
+

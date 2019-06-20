@@ -19,6 +19,8 @@ namespace HeyDo.Controllers
             {
                 var defaultApp = FirebaseApp.DefaultInstance;
 
+                
+
                 if (defaultApp == null)
                 {
                     FirebaseApp.Create(new AppOptions()

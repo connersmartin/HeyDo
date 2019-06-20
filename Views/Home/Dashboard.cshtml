@@ -1,28 +1,26 @@
-﻿@model HeyDo.Models.Auth
-@{
+﻿@{
     ViewData["Title"] = "Dashboard";
 }
-
-<h1>Dashboard</h1>
-<div>
-    <ul>
-        <li id="addUser">Add User</li>
-        <li id="addTask">Add Tasks</li>
-    </ul>
-</div>
-<div>
-    <ul>
-        <li id="viewUsers">View Users</li>
-        <li id="viewTasks">View Tasks</li>
-        <li id="viewHistory">View History</li>
-    </ul>
-</div>
-
-<div>
-    @Model.Token    
-</div>
-<div>
-    @Model.Uid
+<div class="dash">
+    <h1>Dashboard</h1>
+    <div>
+        <ul>
+            <li id="newUser">@Html.ActionLink("Add User","NewUser","Home")</li>
+            <li id="newTask">@Html.ActionLink("Add Task", "NewTask", "Home")</li>
+        </ul>
+    </div>
+    <div>
+        <ul>
+            <li id="viewUsers">@Html.ActionLink("View Users", "ViewUsers", "Home")</li>
+            <li id="viewTasks">@Html.ActionLink("View Tasks", "ViewTasks", "Home")</li>
+            <li id="viewHistory">@Html.ActionLink("View History", "ViewHistory", "Home")</li>
+        </ul>
+    </div>
 </div>
 
+@Context.Request.Cookies["uid"].ToString()
+@Context.Request.Cookies["token"].ToString()
+
+
+<div class="data"></div>
 <script type="text/javascript" src="~/js/Dashboard.js"></script>
