@@ -1,16 +1,16 @@
 ﻿@model HeyDo.Models.TaskItem
 
 @{
-    ViewData["Title"] = "NewTask";
+    ViewData["Title"] = "EditTask";
 }
 
-<h1>NewTask</h1>
+<h1>EditTask</h1>
 
 <h4>TaskItem</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="NewTask">
+        <form asp-action="EditTask">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="Id" class="control-label"></label>
@@ -33,7 +33,7 @@
                 <span asp-validation-for="TaskDetails" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="submit" value="Save" class="btn btn-primary" />
             </div>
         </form>
     </div>

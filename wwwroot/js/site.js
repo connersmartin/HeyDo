@@ -5,7 +5,7 @@
 
 // Your web app's Firebase configuration
 var firebaseConfig = {
-   
+
 };
 // Initialize Firebase only once
 if (firebase.apps.length===0) {
@@ -75,7 +75,7 @@ function loginAPI() {
 
 $("#logout").click(function () {
     $.ajax({
-        url: "/Home/Logout",
+        url: "/Home/ClearCookies",
         type: 'POST'
 
     });

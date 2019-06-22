@@ -17,7 +17,7 @@ namespace HeyDo.Models
         {
             Users,
             Tasks,
-            Usertasks
+            UserTasks
         }
 
 

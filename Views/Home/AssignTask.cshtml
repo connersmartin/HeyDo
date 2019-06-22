@@ -1,0 +1,73 @@
+﻿@model HeyDo.Models.Usertask
+
+@{
+    ViewData["Title"] = "AssignTask";
+}
+
+<h1>AssignTask</h1>
+
+<h4>Usertask</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="AssignTask">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Id" class="control-label"></label>
+                <input asp-for="Id" class="form-control" />
+                <span asp-validation-for="Id" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TaskId" class="control-label"></label>
+                <input asp-for="TaskId" class="form-control" />
+                <span asp-validation-for="TaskId" class="text-danger"></span>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="Complete" /> @Html.DisplayNameFor(model => model.Complete)
+                </label>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="Passed" /> @Html.DisplayNameFor(model => model.Passed)
+                </label>
+            </div>
+            <div class="form-group">
+                <label asp-for="UserIdAssigned" class="control-label"></label>
+                <input asp-for="UserIdAssigned" class="form-control" />
+                <span asp-validation-for="UserIdAssigned" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ContactMethod" class="control-label"></label>
+                <input asp-for="ContactMethod" class="form-control" />
+                <span asp-validation-for="ContactMethod" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ActionTaken" class="control-label"></label>
+                <input asp-for="ActionTaken" class="form-control" />
+                <span asp-validation-for="ActionTaken" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AssignedDateTime" class="control-label"></label>
+                <input asp-for="AssignedDateTime" class="form-control" />
+                <span asp-validation-for="AssignedDateTime" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CompletedDateTime" class="control-label"></label>
+                <input asp-for="CompletedDateTime" class="form-control" />
+                <span asp-validation-for="CompletedDateTime" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="ViewHistory">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -16,12 +16,12 @@ namespace HeyDo.Data
         private static HttpClient _client = new HttpClient();
         private static string baseUrl = "/";
         
-        
         //TODO clean up and test
         public static async Task<JObject> ApiGoogle(string method, string json, string sub, Dictionary<string,string> auth)
         {
+            var authCheck = await AuthController.Google(auth["token"]);
             //Make sure user is authorized
-            if (await AuthController.Google(auth["token"]) == auth["uid"])
+            if (authCheck == auth["uid"])
             {
                 var url = baseUrl + sub + ".json?auth="+auth["token"];
                 var res = new HttpResponseMessage();
@@ -45,13 +45,26 @@ namespace HeyDo.Data
                             break;
                 }
 
-                var interim = await res.Content.ReadAsStringAsync();
+                if (res.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    return new JObject() {
+                        { "Error", res.ReasonPhrase }
+                    };
+                }
+                else
+                {
+                    var interim = await res.Content.ReadAsStringAsync();
 
-                return JsonConvert.DeserializeObject<JObject>(interim);
+                    return interim == null || interim == "null" ? new JObject() : JsonConvert.DeserializeObject<JObject>(interim);
+
+                }
+
             }
             else
             {
-                return new JObject();
+                return new JObject() {
+                    {"Error",authCheck }
+                };
             }
 
         }

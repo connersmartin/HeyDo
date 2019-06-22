@@ -36,7 +36,7 @@ namespace HeyDo.Controllers
             }
             catch (Exception e)
             {
-                throw;
+                return e.Message;
             }
             
         }
@@ -54,5 +54,7 @@ namespace HeyDo.Controllers
             }
 
         }
+
+       
     }
 }

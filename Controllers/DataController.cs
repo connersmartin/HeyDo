@@ -46,21 +46,42 @@ namespace HeyDo.Controllers
         /// <param name="auth">Google atuh token</param>
         /// <param name="dataType">User, Task, Usertask</param>
         /// <returns></returns>
-        public static async Task<List<JObject>> GetData(Dictionary<string,string> auth, Enums.DataType dataType)
+        public static async Task<List<JObject>> GetData(Dictionary<string,string> auth, Enums.DataType dataType, string id = null)
         {
             var list = new List<JObject>();
 
-            var url = dataType + "/" + auth["uid"];
+            var url = dataType + "/" + auth["uid"] + id;
 
             var data = await DataAccess.ApiGoogle("GET", "", url, auth);
 
-            foreach (var o in data)
+
+            if (data != null)
             {
-                list.Add(o.Value.ToObject<JObject>());
+                if (data["Error"] != null)
+                {
+                    list.Add(data);
+                    return list;
+                }
+                else
+                {
+                    if (id != null)
+                    {
+                        list.Add(data.ToObject<JObject>());
+                    }
+                    else
+                    {
+                        foreach (var o in data)
+                        {
+                            list.Add(o.Value.ToObject<JObject>());
+                        }
+                    }
+                }
+                return list;
             }
-
-            return list;
-
+            else
+            {
+                return list;
+            }
         }
         /// <summary>
         /// Deletes given data
@@ -69,9 +90,10 @@ namespace HeyDo.Controllers
         /// <param name="auth"></param>
         /// <param name="dataType"></param>
         /// <returns>something maybe</returns>
-        public static async Task<string> DeleteData(Dictionary<string, string> auth, Enums.DataType dataType)
+        public static async Task<string> DeleteData(Dictionary<string, string> auth, Enums.DataType dataType, string id)
         {
-            var data = await DataAccess.ApiGoogle("DELETE", "", "", auth);
+            var url = dataType + "/" + auth["uid"] + "/"+id;
+            var data = await DataAccess.ApiGoogle("DELETE", "", url, auth);
 
             return data.ToString();
         }

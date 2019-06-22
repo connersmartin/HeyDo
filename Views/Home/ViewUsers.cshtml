@@ -7,7 +7,7 @@
 <h1>ViewUsers</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="NewUser">Create New</a>
 </p>
 <table class="table">
     <thead>
@@ -61,9 +61,9 @@
                 @Html.DisplayFor(modelItem => item.email)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+                @Html.ActionLink("Edit", "EditUser", new { id=item.Id }) |
+                @Html.ActionLink("Details", "ViewHistory", new { id=item.Id}) |
+                @Html.ActionLink("Delete", "DeleteUser", new { id=item.Id })
             </td>
         </tr>
 }

@@ -36,5 +36,11 @@ namespace HeyDo.Controllers
                     break;
             }            
         }
+
+        //TODO theoretically, when a usertask is created send a message to a messsage queue
+        public string AddMessage()
+        {
+            return null; 
+        }
     }
 }

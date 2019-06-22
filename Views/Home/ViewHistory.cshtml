@@ -1,0 +1,83 @@
+﻿@model IEnumerable<HeyDo.Models.Usertask>
+
+@{
+    ViewData["Title"] = "ViewHistory";
+}
+
+<h1>ViewHistory</h1>
+
+<p>
+    <a asp-action="AssignTask">Assign a Task</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Id)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.TaskId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Complete)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Passed)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.UserIdAssigned)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ContactMethod)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ActionTaken)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AssignedDateTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CompletedDateTime)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TaskId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Complete)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Passed)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.UserIdAssigned)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ContactMethod)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ActionTaken)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AssignedDateTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CompletedDateTime)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
+                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
+                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
