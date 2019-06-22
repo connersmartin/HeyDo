@@ -11,21 +11,20 @@ namespace HeyDo.Controllers
 {
     public class AuthController : Controller
     {
+        private static string jsonCred = "";
         public static async Task<string> Google(string idToken)
         {
             //TODO can theoretically check id token here and return uid
             //need to figure out how to log out of this though if even necessary
             try
             {
-                var defaultApp = FirebaseApp.DefaultInstance;
-
-                
+                var defaultApp = FirebaseApp.DefaultInstance;  
 
                 if (defaultApp == null)
                 {
                     FirebaseApp.Create(new AppOptions()
                     {
-                        Credential = GoogleCredential.FromJson(""),
+                        Credential = GoogleCredential.FromJson(jsonCred),
                     });
                 }
 

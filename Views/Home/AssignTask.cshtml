@@ -1,4 +1,4 @@
-﻿@model HeyDo.Models.Usertask
+﻿@model HeyDo.Models.UserTaskList
 
 @{
     ViewData["Title"] = "AssignTask";
@@ -6,57 +6,38 @@
 
 <h1>AssignTask</h1>
 
-<h4>Usertask</h4>
+<h4>UserTaskList</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
         <form asp-action="AssignTask">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="Id" class="control-label"></label>
-                <input asp-for="Id" class="form-control" />
-                <span asp-validation-for="Id" class="text-danger"></span>
+                <label asp-for="UserTask.Id" class="control-label"></label>
+                <input asp-for="UserTask.Id" class="form-control" />
+                <span asp-validation-for="UserTask.Id" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="TaskId" class="control-label"></label>
-                <input asp-for="TaskId" class="form-control" />
-                <span asp-validation-for="TaskId" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="Complete" /> @Html.DisplayNameFor(model => model.Complete)
-                </label>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="Passed" /> @Html.DisplayNameFor(model => model.Passed)
-                </label>
+                <label asp-for="UserTask.TaskId" class="control-label"></label>
+                <select asp-for="UserTask.TaskId" class="form-control" asp-items="Model.Tasks" ></select>
+                <span asp-validation-for="UserTask.TaskId" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="UserIdAssigned" class="control-label"></label>
-                <input asp-for="UserIdAssigned" class="form-control" />
-                <span asp-validation-for="UserIdAssigned" class="text-danger"></span>
+                <label asp-for="UserTask.SendTime" class="control-label"></label>
+                <select asp-for="UserTask.SendTime" class="form-control" asp-items="Model.Times" ></select>
+                <span asp-validation-for="UserTask.SendTime" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="ContactMethod" class="control-label"></label>
-                <input asp-for="ContactMethod" class="form-control" />
-                <span asp-validation-for="ContactMethod" class="text-danger"></span>
+                <label asp-for="UserTask.UserIdAssigned" class="control-label"></label>
+                <select asp-for="UserTask.UserIdAssigned" class="form-control" asp-items="Model.Users" ></select>
+                <span asp-validation-for="UserTask.UserIdAssigned" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="ActionTaken" class="control-label"></label>
-                <input asp-for="ActionTaken" class="form-control" />
-                <span asp-validation-for="ActionTaken" class="text-danger"></span>
+                <label asp-for="UserTask.ContactMethod" class="control-label"></label>
+                <input asp-for="UserTask.ContactMethod" class="form-control" />
+                <span asp-validation-for="UserTask.ContactMethod" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="AssignedDateTime" class="control-label"></label>
-                <input asp-for="AssignedDateTime" class="form-control" />
-                <span asp-validation-for="AssignedDateTime" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CompletedDateTime" class="control-label"></label>
-                <input asp-for="CompletedDateTime" class="form-control" />
-                <span asp-validation-for="CompletedDateTime" class="text-danger"></span>
-            </div>
+
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>

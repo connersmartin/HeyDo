@@ -22,6 +22,9 @@
                 @Html.DisplayNameFor(model => model.Complete)
             </th>
             <th>
+                @Html.DisplayNameFor(model => model.SendTime)
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.Passed)
             </th>
             <th>
@@ -55,6 +58,9 @@
                 @Html.DisplayFor(modelItem => item.Complete)
             </td>
             <td>
+                @Html.DisplayFor(modelItem => item.SendTime)
+            </td>
+            <td>
                 @Html.DisplayFor(modelItem => item.Passed)
             </td>
             <td>
@@ -71,11 +77,6 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.CompletedDateTime)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
             </td>
         </tr>
 }

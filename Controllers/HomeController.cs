@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using HeyDo.Models;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace HeyDo.Controllers
 {
@@ -124,35 +126,42 @@ namespace HeyDo.Controllers
         {
             var dict = GetCookies();
             //Real life
-            var userList = new List<User>();
-            var data = await DataController.GetData(dict, Enums.DataType.Users);
+            var userList = await GetUsers(dict);
 
+            return View(userList);
+
+            //Test data
+            //return View(TestData.TestUsers);
+        }
+
+        public async Task<List<User>> GetUsers(Dictionary<string, string> auth)
+        {
+            var data = await DataController.GetData(auth, Enums.DataType.Users);
+            var userList = new List<User>();
             if (data.Count > 0)
             {
                 if (data.FirstOrDefault().ContainsKey("Error"))
                 {
-                    return RedirectToAction("Logout");
+                    Logout();
+
+                    return userList;
                 }
                 else
                 {
-                
+
                     foreach (var user in data)
                     {
                         userList.Add(user.ToObject<User>());
                     }
 
-                    return View(userList);
+                    return userList;
                 }
 
             }
             else
             {
-                return View(userList);
+                return userList;
             }
-
-
-            //Test data
-            //return View(TestData.TestUsers);
         }
         #endregion
 
@@ -219,8 +228,17 @@ namespace HeyDo.Controllers
         {
             var dict = GetCookies();
             //Real life
+            var taskList = await GetTasks(dict);
 
-            var data = await DataController.GetData(dict, Enums.DataType.Tasks);
+            return View(taskList);
+
+            //Test data
+            //return View(TestData.TestTasks);
+        }
+
+        public async Task<List<TaskItem>> GetTasks(Dictionary<string, string> auth)
+        {
+            var data = await DataController.GetData(auth, Enums.DataType.Tasks);
 
             var taskList = new List<TaskItem>();
 
@@ -228,7 +246,8 @@ namespace HeyDo.Controllers
             {
                 if (data.FirstOrDefault().ContainsKey("Error"))
                 {
-                    return RedirectToAction("Logout");
+                    Logout();
+                    return taskList;
                 }
                 else
                 {
@@ -238,17 +257,14 @@ namespace HeyDo.Controllers
                         taskList.Add(task.ToObject<TaskItem>());
                     }
 
-                    return View(taskList);
+                    return taskList;
                 }
 
             }
             else
             {
-                return View(taskList);
+                return taskList;
             }
-
-            //Test data
-            //return View(TestData.TestTasks);
         }
 
         #endregion
@@ -286,25 +302,43 @@ namespace HeyDo.Controllers
         [HttpGet]
         public async Task<IActionResult> AssignTask()
         {
+            var dict = GetCookies();
+            var utl = new UserTaskList();
             //Get Users
-            
-            //Get Tasks
-            
-            //Get Times
+            var userList = await GetUsers(dict);
+            var userSl = new List<SelectListItem>();
+            foreach (var user in userList)
+            {
+                userSl.Add(new SelectListItem(user.name,user.Id));
+            }
 
-            return View();
+            //Get Tasks
+            var taskList = await GetTasks(dict);
+            var taskSl = new List<SelectListItem>();
+            foreach (var task in taskList)
+            {
+                taskSl.Add(new SelectListItem(task.Title, task.Id));
+            }
+            //Get Times
+            var timeList = GetTimes();
+
+            return View("AssignTask", new UserTaskList(){Tasks = taskSl,Users = userSl, Times = timeList} );
         }
         [HttpPost]
-        public async Task<IActionResult> AssignTask(Usertask usertask)
+        public async Task<IActionResult> AssignTask(UserTaskList userTaskList)
         {
+            var something = userTaskList;
+            userTaskList.UserTask.AssignedDateTime = DateTime.Now;
+            userTaskList.UserTask.Complete = false;
             var dict = GetCookies();
-            var jData = JsonConvert.SerializeObject(usertask);
+            var jData = JsonConvert.SerializeObject(userTaskList.UserTask);
             var data = await DataController.AddData(dict, Enums.DataType.UserTasks, jData);
 
             return RedirectToAction("ViewHistory");
         }
 
         #endregion
+
         public IActionResult Logout()
         {
             Remove("uid");
@@ -316,6 +350,20 @@ namespace HeyDo.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        public List<SelectListItem> GetTimes()
+        {
+            var times = new List<SelectListItem>();
+            for (int i = 0; i < 24; i++)
+            {
+                times.Add(new SelectListItem(
+                    i+":00",
+                    new DateTime(2000, 1, 1, i, 0, 0).ToShortTimeString()
+                    ));
+            }
+
+            return times;
         }
 
         #region Cookie Management
