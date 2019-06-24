@@ -5,12 +5,15 @@ using System.Threading.Tasks;
 using HeyDo.Data;
 using HeyDo.Messaging;
 using HeyDo.Models;
+using HeyDo.Controllers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace HeyDo.Controllers
 {
     public class MessageController : Controller
     {
+
         /// <summary>
         /// Sends a message to a user
         /// </summary>
@@ -22,15 +25,15 @@ namespace HeyDo.Controllers
             {
                 case Enums.ContactType.Email:
                     //Test data
-                    var success = EmailAgent.SendMail(TestData.TestSms);
+                    //var success = EmailAgent.SendMail(TestData.TestSms);
                     //Real life
-                    //var success = EmailAgent.SendMail(msg);
+                    var success = EmailAgent.SendMail(msg);
                     break;
                 case Enums.ContactType.Phone:
                     //Test data
-                    SmsAgent.TwiSend(TestData.TestSms);
+                    //SmsAgent.TwiSend(TestData.TestSms);
                     //Real life
-                    //SmsAgent.TwiSend(msg);
+                    SmsAgent.TwiSend(msg);
                     break;
                 default:
                     break;
@@ -38,8 +41,8 @@ namespace HeyDo.Controllers
         }
 
         //TODO theoretically, when a usertask is created send a message to a messsage queue
-        public string AddMessage()
-        {
+        public async Task<string> AddMessage(UserTaskList userTaskList)
+        {  
             return null; 
         }
     }

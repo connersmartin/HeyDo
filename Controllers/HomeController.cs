@@ -25,14 +25,14 @@ namespace HeyDo.Controllers
         {
             this._httpContextAccessor = httpContextAccessor;
         }
+        public MessageController mc = new MessageController();
 
-
-
+        #region Default Views
         [HttpGet]
         public IActionResult Index()
         {
             var dict = GetCookies();
-
+            //Check to see if logged in
             if (dict["uid"] != null && dict["token"] != null)
             {
                 return View("Dashboard");
@@ -42,24 +42,22 @@ namespace HeyDo.Controllers
                     
                 return View();
             }
-
         }
-
 
         public IActionResult Dashboard()
         {
             var dict = GetCookies();
-
+            //Check to see if logged in
             if (dict["uid"] == null && dict["token"] == null)
             {
                 return View("Index");
             }
             else
             {
-
                 return View();
             }
         }
+        #endregion
 
         #region User Management
 
@@ -120,7 +118,6 @@ namespace HeyDo.Controllers
             return RedirectToAction("ViewUsers");
         }
 
-        //View all users
         [HttpGet]
         public async Task<IActionResult> ViewUsers()
         {
@@ -134,6 +131,11 @@ namespace HeyDo.Controllers
             //return View(TestData.TestUsers);
         }
 
+        /// <summary>
+        /// Gets all users, reusable
+        /// </summary>
+        /// <param name="auth"></param>
+        /// <returns></returns>
         public async Task<List<User>> GetUsers(Dictionary<string, string> auth)
         {
             var data = await DataController.GetData(auth, Enums.DataType.Users);
@@ -270,6 +272,10 @@ namespace HeyDo.Controllers
         #endregion
 
         #region Assignments
+        /// <summary>
+        /// View all Assignments made
+        /// </summary>
+        /// <returns></returns>
         public async Task<IActionResult> ViewHistory()
         {
             var dict = GetCookies();
@@ -299,6 +305,7 @@ namespace HeyDo.Controllers
                 return View(taskList);
             }
         }
+
         [HttpGet]
         public async Task<IActionResult> AssignTask()
         {
@@ -324,6 +331,11 @@ namespace HeyDo.Controllers
 
             return View("AssignTask", new UserTaskList(){Tasks = taskSl,Users = userSl, Times = timeList} );
         }
+        /// <summary>
+        /// Assigns a task to a user and sends out a notification
+        /// </summary>
+        /// <param name="userTaskList"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<IActionResult> AssignTask(UserTaskList userTaskList)
         {
@@ -334,24 +346,71 @@ namespace HeyDo.Controllers
             var jData = JsonConvert.SerializeObject(userTaskList.UserTask);
             var data = await DataController.AddData(dict, Enums.DataType.UserTasks, jData);
 
+            //Send out notification
+            //await SendNotification(userTaskList, dict);
+
             return RedirectToAction("ViewHistory");
         }
 
         #endregion
 
-        public IActionResult Logout()
+        #region Helper functions
+        public IActionResult Issue()
         {
-            Remove("uid");
-            Remove("token");
-            return View("Index");
+            //Should be a generic-ish error page.
+            //Admin user exists
+            //You have been logged out
+            //connection timeout
+            return View();
         }
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        /// <summary>
+        /// Sends the notification
+        /// </summary>
+        /// <param name="userTaskList"></param>
+        /// <param name="dict"></param>
+        /// <returns>nothing</returns>
+        public async Task SendNotification(UserTaskList userTaskList, Dictionary<string,string> dict)
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            //Test data, to be replaced by owner/admin data
+            var tester = new SimpleUser() { name = "testing", email = "" };
+
+            //TODO get admin user
+            //var adminUser = await DataController.GetData(dict, Enums.DataType.AdminUser, "/" + dict["uid"]);
+            //var adminUserObj = adminUser.First().ToObject<User>();
+            //var adminContact = new SimpleUser() { name = adminUserObj.name, email = adminUserObj.email };
+
+            //get contact info
+            var user = await DataController.GetData(dict, Enums.DataType.Users, "/" + userTaskList.UserTask.UserIdAssigned);
+            var userObj = user.First().ToObject<User>();
+            //get task
+            var task = await DataController.GetData(dict, Enums.DataType.Tasks, "/" + userTaskList.UserTask.TaskId);
+            var taskObj = task.First().ToObject<TaskItem>();
+            //Make message
+            //TODO create a template for htmlcontent
+            var msg = new MessageData()
+            {
+                MessageId = Guid.NewGuid().ToString(),
+                tags = new string[] { taskObj.Title },
+                sender = tester,
+                to = new SimpleUser[] { new SimpleUser() { name = userObj.name, email = userObj.email } },
+                htmlContent = taskObj.TaskDetails,
+                textContent = taskObj.TaskDetails,
+                subject = taskObj.Title,
+                replyTo = tester,
+                SendTime = DateTime.Now
+            };
+
+            //Don't really need to send the email all the time
+            mc.SendMessage(msg, userObj.ContactPreference);
+
+            //use encryption?
         }
 
+        /// <summary>
+        /// Gets a list of hours 0-23 from drop down menu
+        /// </summary>
+        /// <returns></returns>
         public List<SelectListItem> GetTimes()
         {
             var times = new List<SelectListItem>();
@@ -365,6 +424,25 @@ namespace HeyDo.Controllers
 
             return times;
         }
+
+        /// <summary>
+        /// Logs out the users
+        /// </summary>
+        /// <returns></returns>
+        public IActionResult Logout()
+        {
+            Remove("uid");
+            Remove("token");
+            return View("Index");
+        }
+
+        //Not used right now, implement?
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+        #endregion
 
         #region Cookie Management
 
@@ -390,10 +468,8 @@ namespace HeyDo.Controllers
                 {
                     Set("token", b, 10000);
                     Set("uid", a, 10000);
-
                 }
                 return true;
-
             }
             else
             {

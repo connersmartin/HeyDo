@@ -15,6 +15,7 @@ namespace HeyDo.Models
 
         public enum DataType
         {
+            AdminUser,
             Users,
             Tasks,
             UserTasks

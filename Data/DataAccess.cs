@@ -56,9 +56,7 @@ namespace HeyDo.Data
                     var interim = await res.Content.ReadAsStringAsync();
 
                     return interim == null || interim == "null" ? new JObject() : JsonConvert.DeserializeObject<JObject>(interim);
-
                 }
-
             }
             else
             {
@@ -66,8 +64,6 @@ namespace HeyDo.Data
                     {"Error",authCheck }
                 };
             }
-
         }
-
     }
 }

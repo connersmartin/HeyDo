@@ -26,7 +26,6 @@ namespace HeyDo.Messaging
             IRestResponse response = client.Execute(request);
 
             return response.StatusCode.ToString();
-
         }
 
     }

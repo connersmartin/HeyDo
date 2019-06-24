@@ -10,6 +10,7 @@ namespace HeyDo.Models
     {
         public string Id { get; set; }
         public string TaskId { get; set; }
+        public string MessageId { get; set; }
         public bool Complete { get; set; }
         public DateTime SendTime { get; set; }
         public bool Passed { get; set; }

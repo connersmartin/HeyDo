@@ -36,8 +36,7 @@ namespace HeyDo.Controllers
             catch (Exception e)
             {
                 return e.Message;
-            }
-            
+            }       
         }
 
         public static void Clear()
@@ -51,9 +50,6 @@ namespace HeyDo.Controllers
             {
                 throw;
             }
-
-        }
-
-       
+        }       
     }
 }
