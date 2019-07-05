@@ -78,6 +78,7 @@
             <td>
                 @Html.DisplayFor(modelItem => item.CompletedDateTime)
             </td>
+            <td>@Html.ActionLink("Resend task","ResendTask", new {id = item.Id})</td>
         </tr>
 }
     </tbody>

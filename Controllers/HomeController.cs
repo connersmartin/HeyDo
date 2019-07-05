@@ -136,9 +136,18 @@ namespace HeyDo.Controllers
         /// </summary>
         /// <param name="auth"></param>
         /// <returns></returns>
-        public async Task<List<User>> GetUsers(Dictionary<string, string> auth)
+        public async Task<List<User>> GetUsers(Dictionary<string, string> auth, string uid=null)
         {
-            var data = await DataController.GetData(auth, Enums.DataType.Users);
+            var data = new List<JObject>();
+            if (uid == null)
+            {
+                data = await DataController.GetData(auth, Enums.DataType.Users);
+            }
+            else
+            {
+                data = await DataController.GetData(auth, Enums.DataType.Users,"/"+uid);
+            }
+           
             var userList = new List<User>();
             if (data.Count > 0)
             {
@@ -238,10 +247,18 @@ namespace HeyDo.Controllers
             //return View(TestData.TestTasks);
         }
 
-        public async Task<List<TaskItem>> GetTasks(Dictionary<string, string> auth)
+        public async Task<List<TaskItem>> GetTasks(Dictionary<string, string> auth, string id=null)
         {
-            var data = await DataController.GetData(auth, Enums.DataType.Tasks);
-
+            var data = new List<JObject>();
+            if (id == null)
+            {
+                data = await DataController.GetData(auth, Enums.DataType.Tasks);
+            }
+            else
+            {
+                data = await DataController.GetData(auth, Enums.DataType.Tasks,"/"+id);
+            }
+            
             var taskList = new List<TaskItem>();
 
             if (data.Count > 0)
@@ -251,22 +268,15 @@ namespace HeyDo.Controllers
                     Logout();
                     return taskList;
                 }
-                else
-                {
-
                     foreach (var task in data)
                     {
                         taskList.Add(task.ToObject<TaskItem>());
                     }
-
-                    return taskList;
-                }
-
-            }
-            else
-            {
                 return taskList;
             }
+
+            return taskList;
+
         }
 
         #endregion
@@ -347,8 +357,34 @@ namespace HeyDo.Controllers
             var data = await DataController.AddData(dict, Enums.DataType.UserTasks, jData);
 
             //Send out notification
-            //await SendNotification(userTaskList, dict);
+            await SendNotification(userTaskList, dict);
 
+            return RedirectToAction("ViewHistory");
+        }
+        /// <summary>
+        /// Resends a given task
+        /// </summary>
+        /// <param name="id">the specific usertask id</param>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IActionResult> ResendTask(string id)
+        {
+            //auth
+            var dict = GetCookies();
+
+            //get the usertask data
+            var userTask = await DataController.GetData(dict, Enums.DataType.UserTasks, "/" + id);
+            var userTaskList = new UserTaskList()
+            {
+                UserTask = userTask.FirstOrDefault().ToObject<Usertask>()
+            };
+            userTaskList.UserTask.SendTime = DateTime.Now;
+            var jData = JsonConvert.SerializeObject(userTaskList.UserTask);
+            //update the sent time
+            await DataController.AddData(dict, Enums.DataType.UserTasks, jData, true);
+            //send the notification
+            await SendNotification(userTaskList, dict);
+            
             return RedirectToAction("ViewHistory");
         }
 
