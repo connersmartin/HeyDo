@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Hangfire;
 
 namespace HeyDo
 {
@@ -31,8 +32,7 @@ namespace HeyDo
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDistributedMemoryCache();
-
-           
+            services.AddHangfire(x => x.UseFirebaseStorage("",""));
 
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
@@ -60,7 +60,7 @@ namespace HeyDo
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
+         
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
@@ -70,6 +70,8 @@ namespace HeyDo
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+            app.UseHangfireServer();
+            app.UseHangfireDashboard();
         }
     }
 }

@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Hangfire;
 
 namespace HeyDo.Controllers
 {
@@ -436,9 +437,9 @@ namespace HeyDo.Controllers
                 replyTo = tester,
                 SendTime = DateTime.Now
             };
-
-            //Don't really need to send the email all the time
-            mc.SendMessage(msg, userObj.ContactPreference);
+            
+            //Immediately send message
+            BackgroundJob.Enqueue(() => mc.SendMessage(msg, userTaskList.UserTask.ContactMethod));
 
             //use encryption?
         }
