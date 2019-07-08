@@ -19,9 +19,9 @@ namespace HeyDo.Messaging
         /// <param name="messageData">Should only be sending to number and subject + text from email</param>
         public static void TwiSend(MessageData messageData)
         {
-            var ownPhone = ""; 
-            const string accountSid = "";
-            const string authToken = "";
+            var ownPhone = AppSettings.AppSetting["SMSNumber"]; 
+            var accountSid = AppSettings.AppSetting["SMSAccountSid"];
+            var authToken = AppSettings.AppSetting["SMSAuthToken"];
 
             TwilioClient.Init(accountSid, authToken);
 
@@ -33,5 +33,5 @@ namespace HeyDo.Messaging
 
         }
     }
-        
+
 }

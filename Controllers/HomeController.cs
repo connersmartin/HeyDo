@@ -40,7 +40,7 @@ namespace HeyDo.Controllers
             }
             else
             {
-                    
+                ViewBag.Title = AppSettings.AppSetting["Thisisdumb"];
                 return View();
             }
         }
@@ -410,7 +410,7 @@ namespace HeyDo.Controllers
         public async Task SendNotification(UserTaskList userTaskList, Dictionary<string,string> dict)
         {
             //Test data, to be replaced by owner/admin data
-            var tester = new SimpleUser() { name = "testing", email = "" };
+            var tester = new SimpleUser() { name = "testing", email = AppSettings.AppSetting["testEmail"]};
 
             //TODO get admin user
             //var adminUser = await DataController.GetData(dict, Enums.DataType.AdminUser, "/" + dict["uid"]);

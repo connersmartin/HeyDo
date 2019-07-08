@@ -32,7 +32,7 @@ namespace HeyDo
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDistributedMemoryCache();
-            services.AddHangfire(x => x.UseFirebaseStorage("",""));
+            services.AddHangfire(x => x.UseFirebaseStorage(AppSettings.AppSetting["HangfireUrl"],AppSettings.AppSetting["HangfireAuth"]));
 
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(

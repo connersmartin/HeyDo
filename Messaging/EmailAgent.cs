@@ -20,7 +20,7 @@ namespace HeyDo.Messaging
         {
             var client = new RestClient("https://api.sendinblue.com/v3/smtp/email");
             var request = new RestRequest(Method.POST);          
-            request.AddHeader("api-key", "");
+            request.AddHeader("api-key", AppSettings.AppSetting["EmailAPIKey"]);
             request.AddHeader("Content-Type", "application/json");
             request.AddParameter("undefined", JsonConvert.SerializeObject(emailData), ParameterType.RequestBody);
             IRestResponse response = client.Execute(request);

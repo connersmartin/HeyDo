@@ -14,7 +14,7 @@ namespace HeyDo.Data
     public class DataAccess
     {
         private static HttpClient _client = new HttpClient();
-        private static string baseUrl = "/";
+        private static string baseUrl = AppSettings.AppSetting["FirebaseBaseUrl"];
         
         //TODO clean up and test
         public static async Task<JObject> ApiGoogle(string method, string json, string sub, Dictionary<string,string> auth)
