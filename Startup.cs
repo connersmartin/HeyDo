@@ -34,12 +34,9 @@ namespace HeyDo
             services.AddDistributedMemoryCache();
             services.AddHangfire(x => x.UseFirebaseStorage(AppSettings.AppSetting["HangfireUrl"],AppSettings.AppSetting["HangfireAuth"]));
 
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection")));
+
             services.AddDefaultIdentity<IdentityUser>()
-                .AddDefaultUI(UIFramework.Bootstrap4)
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+                .AddDefaultUI(UIFramework.Bootstrap4);
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 

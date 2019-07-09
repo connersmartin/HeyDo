@@ -14,7 +14,6 @@ namespace HeyDo.Controllers
         private static string jsonCred = AppSettings.AppSetting["AuthJsonCred"];
         public static async Task<string> Google(string idToken)
         {
-            //TODO can theoretically check id token here and return uid
             //need to figure out how to log out of this though if even necessary
             try
             {
