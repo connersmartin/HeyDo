@@ -13,17 +13,14 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Id)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UserId)
-            </th>
-            <th>
                 @Html.DisplayNameFor(model => model.Title)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.TaskDetails)
             </th>
+            <td>
+                @Html.DisplayNameFor(model => model.UserId)
+            </td>
             <th></th>
         </tr>
     </thead>
@@ -31,21 +28,18 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UserId)
-            </td>
-            <td>
                 @Html.DisplayFor(modelItem => item.Title)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.TaskDetails)
             </td>
             <td>
-                @Html.ActionLink("Edit", "EditTask", new { id=item.Id }) |
+                @Html.DisplayFor(modelItem => item.UserId)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "EditTask", new { id = item.Id }) |
                 @Html.ActionLink("Details", "ViewHistory", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "DeleteTask", new { id=item.Id })
+                @Html.ActionLink("Delete", "DeleteTask", new { id = item.Id })
             </td>
         </tr>
 }

@@ -5,7 +5,6 @@
 
 // Your web app's Firebase configuration
 var firebaseConfig = {
-
 };
 // Initialize Firebase only once
 if (firebase.apps.length===0) {

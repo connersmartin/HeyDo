@@ -74,7 +74,7 @@ namespace HeyDo.Controllers
         [HttpPost]
         public async Task<IActionResult> NewUser(User user)
         {
-
+            user.Id = Guid.NewGuid().ToString();
             var dict = GetCookies();
             var jData = JsonConvert.SerializeObject(user);
             var data = await DataController.AddData(dict, Enums.DataType.Users, jData);
@@ -181,7 +181,6 @@ namespace HeyDo.Controllers
         [HttpGet]
         public IActionResult NewTask()
         {
-
             return View();
         }
 
@@ -189,6 +188,7 @@ namespace HeyDo.Controllers
         [HttpPost]
         public async Task<IActionResult> NewTask(TaskItem task)
         {
+            task.Id = Guid.NewGuid().ToString();
             var dict = GetCookies();
             var jData = JsonConvert.SerializeObject(task);
             var data = await DataController.AddData(dict, Enums.DataType.Tasks, jData);
