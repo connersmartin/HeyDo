@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -15,18 +16,19 @@ using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Hangfire;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace HeyDo.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private IMemoryCache _cache;
 
-        public HomeController(IHttpContextAccessor httpContextAccessor)
+        public HomeController(IMemoryCache memoryCache)
         {
-            this._httpContextAccessor = httpContextAccessor;
+            _cache = memoryCache;
         }
-        public MessageController mc = new MessageController();
+        private readonly MessageController mc = new MessageController();
 
         #region Default Views
         [HttpGet]
@@ -123,8 +125,18 @@ namespace HeyDo.Controllers
         public async Task<IActionResult> ViewUsers()
         {
             var dict = GetCookies();
-            //Real life
-            var userList = await GetUsers(dict);
+
+            var authed = dict["uid"] == await AuthController.Google(dict["token"]);
+            var userList = new List<User>();
+
+            if (!_cache.TryGetValue(dict["uid"] + "userList", out userList) && authed)
+            {
+                // Key not in cache, so get data.
+                userList = await GetUsers(dict);
+                
+                // Save data in cache.
+                _cache.Set(dict["uid"], userList);
+            }
 
             return View(userList);
 
