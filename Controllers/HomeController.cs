@@ -89,19 +89,10 @@ namespace HeyDo.Controllers
         {
             var dict = GetCookies();
 
-            var data = await DataController.GetData(dict, Enums.DataType.Users, "/"+Id);
+            var data = await GetUsers(dict,Id);
 
-            if (data.FirstOrDefault().ContainsKey("Error"))
-            {
-                return RedirectToAction("Logout");
-            }
-            else
-            {
-               var user = data.FirstOrDefault().ToObject<User>();
-
-
-                return View(user);
-            }           
+            return View(data.FirstOrDefault());
+                  
         }
 
         [HttpPost]
@@ -125,18 +116,7 @@ namespace HeyDo.Controllers
         public async Task<IActionResult> ViewUsers()
         {
             var dict = GetCookies();
-
-            var authed = dict["uid"] == await AuthController.Google(dict["token"]);
-            var userList = new List<User>();
-
-            if (!_cache.TryGetValue(dict["uid"] + "userList", out userList) && authed)
-            {
-                // Key not in cache, so get data.
-                userList = await GetUsers(dict);
-                
-                // Save data in cache.
-                _cache.Set(dict["uid"], userList);
-            }
+            var userList = await GetUsers(dict);
 
             return View(userList);
 
@@ -151,16 +131,8 @@ namespace HeyDo.Controllers
         /// <returns></returns>
         public async Task<List<User>> GetUsers(Dictionary<string, string> auth, string uid=null)
         {
-            var data = new List<JObject>();
-            if (uid == null)
-            {
-                data = await DataController.GetData(auth, Enums.DataType.Users);
-            }
-            else
-            {
-                data = await DataController.GetData(auth, Enums.DataType.Users,"/"+uid);
-            }
-           
+            var data = await GetOrSetCachedData(auth, Enums.DataType.Users, uid);
+
             var userList = new List<User>();
             if (data.Count > 0)
             {
@@ -170,22 +142,19 @@ namespace HeyDo.Controllers
 
                     return userList;
                 }
-                else
+
+
+                foreach (var user in data)
                 {
-
-                    foreach (var user in data)
-                    {
-                        userList.Add(user.ToObject<User>());
-                    }
-
-                    return userList;
+                    userList.Add(user.ToObject<User>());
                 }
 
-            }
-            else
-            {
                 return userList;
+
+
             }
+
+            return userList;
         }
         #endregion
 
@@ -213,19 +182,10 @@ namespace HeyDo.Controllers
         {
             var dict = GetCookies();
 
-            var data = await DataController.GetData(dict, Enums.DataType.Tasks, "/" + Id);
+            var task = await GetTasks(dict, Id);
 
-            if (data.FirstOrDefault().ContainsKey("Error"))
-            {
-                return RedirectToAction("Logout");
-            }
-            else
-            {
-                var task = data.FirstOrDefault().ToObject<TaskItem>();
+            return View(task.FirstOrDefault());
 
-
-                return View(task);
-            }
         }
 
         [HttpPost]
@@ -262,16 +222,9 @@ namespace HeyDo.Controllers
 
         public async Task<List<TaskItem>> GetTasks(Dictionary<string, string> auth, string id=null)
         {
-            var data = new List<JObject>();
-            if (id == null)
-            {
-                data = await DataController.GetData(auth, Enums.DataType.Tasks);
-            }
-            else
-            {
-                data = await DataController.GetData(auth, Enums.DataType.Tasks,"/"+id);
-            }
-            
+
+            var data = await GetOrSetCachedData(auth, Enums.DataType.Tasks, id);
+
             var taskList = new List<TaskItem>();
 
             if (data.Count > 0)
@@ -303,7 +256,7 @@ namespace HeyDo.Controllers
         {
             var dict = GetCookies();
 
-            var data = await DataController.GetData(dict, Enums.DataType.UserTasks);
+            var data = await GetOrSetCachedData(dict, Enums.DataType.UserTasks);
             var taskList = new List<Usertask>();
             if (data.Count > 0)
             {
@@ -311,22 +264,20 @@ namespace HeyDo.Controllers
                 {
                     return RedirectToAction("Logout");
                 }
-                else
-                {
+              
 
                     foreach (var task in data)
                     {
                         taskList.Add(task.ToObject<Usertask>());
                     }
 
-                    return View(taskList);
-                }
+                return View(taskList);
+
 
             }
-            else
-            {
-                return View(taskList);
-            }
+
+            return View(taskList);
+
         }
 
         [HttpGet]
@@ -411,6 +362,34 @@ namespace HeyDo.Controllers
             //You have been logged out
             //connection timeout
             return View();
+        }
+
+        private async Task<List<JObject>> GetOrSetCachedData(Dictionary<string, string> auth, Enums.DataType dataType,
+            string id = null)
+        {
+            var authed = auth["uid"] == await AuthController.Google(auth["token"]);
+
+            var data = new List<JObject>();
+            var uData = new List<JObject>();
+
+            if (!_cache.TryGetValue(auth["uid"] + dataType, out data) && authed)
+            {
+                // Key not in cache, so get data.
+                data = await DataController.GetData(auth, dataType);
+
+                // Save data in cache.
+                _cache.Set(auth["uid"] + dataType, data);
+            }
+
+            uData = data;
+
+            if (id != null)
+            {
+                var task = data.Find(u => u["Id"].ToString() == id);
+                uData.Add(task);
+            }
+
+            return uData;
         }
 
         /// <summary>
