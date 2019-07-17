@@ -21,6 +21,13 @@ namespace HeyDo.Models
             UserTasks
         }
 
+        public enum UpdateType
+        {
+            Add,
+            Edit,
+            Delete
+        }
+
 
     }
 }
