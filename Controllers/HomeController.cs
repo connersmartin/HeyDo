@@ -311,6 +311,7 @@ namespace HeyDo.Controllers
         [HttpPost]
         public async Task<IActionResult> AssignTask(UserTaskList userTaskList)
         {
+            userTaskList.UserTask.Id = Guid.NewGuid().ToString();
             var something = userTaskList;
             userTaskList.UserTask.AssignedDateTime = DateTime.Now;
             userTaskList.UserTask.Complete = false;
