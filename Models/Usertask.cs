@@ -19,5 +19,6 @@ namespace HeyDo.Models
         public string ActionTaken { get; set; }
         public DateTime AssignedDateTime { get; set; }
         public DateTime CompletedDateTime { get; set; }
+        public bool SendNow { get; set; }
     }
 }

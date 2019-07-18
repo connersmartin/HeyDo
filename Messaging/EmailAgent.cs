@@ -13,7 +13,7 @@ namespace HeyDo.Messaging
     public class EmailAgent
     {
         /// <summary>
-        /// Sends out an email via SednInBlue
+        /// Sends out an email via SendInBlue
         /// </summary>
         /// <param name="emailData">Email data object, sender,subject, to , etc</param>
         public static string SendMail(MessageData emailData)

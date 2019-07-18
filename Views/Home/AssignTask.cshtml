@@ -15,17 +15,22 @@
 
             <div class="form-group">
                 <label asp-for="UserTask.TaskId" class="control-label"></label>
-                <select asp-for="UserTask.TaskId" class="form-control" asp-items="Model.Tasks" ></select>
+                <select asp-for="UserTask.TaskId" class="form-control" asp-items="Model.Tasks"></select>
                 <span asp-validation-for="UserTask.TaskId" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group" id="time">
                 <label asp-for="UserTask.SendTime" class="control-label"></label>
-                <select asp-for="UserTask.SendTime" class="form-control" asp-items="Model.Times" ></select>
+                <select asp-for="UserTask.SendTime" class="form-control" asp-items="Model.Times"></select>
                 <span asp-validation-for="UserTask.SendTime" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <input type="checkbox"  id="check" asp-for="UserTask.SendNow"/>
+                <label asp-for="UserTask.SendNow" class="control-label"></label>
+                <span asp-validation-for="UserTask.SendNow" class="text-danger"></span>
+            </div>
+            <div class="form-group">
                 <label asp-for="UserTask.UserIdAssigned" class="control-label"></label>
-                <select asp-for="UserTask.UserIdAssigned" class="form-control" asp-items="Model.Users" ></select>
+                <select asp-for="UserTask.UserIdAssigned" class="form-control" asp-items="Model.Users"></select>
                 <span asp-validation-for="UserTask.UserIdAssigned" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -47,4 +52,9 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $("#check").click(function() {
+            $("#time").toggle();
+        })
+    </script>
 }

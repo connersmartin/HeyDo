@@ -41,14 +41,7 @@ namespace HeyDo.Controllers
         public static void Clear()
         {
             //Unsure if this would ever need to be used
-            try
-            {
-                FirebaseApp.DefaultInstance.Delete();
-            }
-            catch (Exception e)
-            {
-                throw;
-            }
+            FirebaseApp.DefaultInstance.Delete();
         }       
     }
 }

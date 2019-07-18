@@ -312,11 +312,21 @@ namespace HeyDo.Controllers
         public async Task<IActionResult> AssignTask(UserTaskList userTaskList)
         {
             userTaskList.UserTask.Id = Guid.NewGuid().ToString();
-            var something = userTaskList;
             userTaskList.UserTask.AssignedDateTime = DateTime.Now;
             userTaskList.UserTask.Complete = false;
+            if (userTaskList.UserTask.SendNow)
+            {
+                userTaskList.UserTask.SendTime = DateTime.Now;
+            }
+
+            if (userTaskList.UserTask.SendTime < DateTime.Now && !userTaskList.UserTask.SendNow)
+            {
+                userTaskList.UserTask.SendTime = userTaskList.UserTask.SendTime.AddDays(1);
+            }
+
             var dict = GetCookies();
             var jData = JsonConvert.SerializeObject(userTaskList.UserTask);
+
             await UpdateAndClearCache(dict, Enums.DataType.UserTasks,Enums.UpdateType.Add, jData);
 
             //Send out notification
@@ -345,7 +355,10 @@ namespace HeyDo.Controllers
             var jData = JsonConvert.SerializeObject(userTaskList.UserTask);
             //update the sent time
             await UpdateAndClearCache(dict, Enums.DataType.UserTasks,Enums.UpdateType.Edit, jData);
-            //send the notification
+            
+            //send the notification now, but not updating the task
+            userTaskList.UserTask.SendNow = true;
+
             await SendNotification(userTaskList, dict);
             
             return RedirectToAction("ViewHistory");
@@ -433,6 +446,7 @@ namespace HeyDo.Controllers
             //get task
             var task = await GetOrSetCachedData(dict, Enums.DataType.Tasks, userTaskList.UserTask.TaskId);
             var taskObj = task.First().ToObject<TaskItem>();
+
             //Make message
             //TODO create a template for htmlcontent
             var msg = new MessageData()
@@ -445,11 +459,22 @@ namespace HeyDo.Controllers
                 textContent = taskObj.TaskDetails,
                 subject = taskObj.Title,
                 replyTo = tester,
-                SendTime = DateTime.Now
+                SendTime = userTaskList.UserTask.SendTime
             };
-            
+
             //Immediately send message
-            BackgroundJob.Enqueue(() => mc.SendMessage(msg, userTaskList.UserTask.ContactMethod));
+            if (userTaskList.UserTask.SendNow)
+            {
+                BackgroundJob.Enqueue(() => mc.SendMessage(msg, userTaskList.UserTask.ContactMethod));
+            }
+            //wait until you say so
+            else
+            {
+                BackgroundJob.Schedule(() => mc.SendMessage(msg, userTaskList.UserTask.ContactMethod), msg.SendTime);
+            }
+            
+
+
 
             //use encryption?
         }

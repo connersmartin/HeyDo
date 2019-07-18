@@ -21,11 +21,6 @@ namespace HeyDo.Controllers
         /// <returns></returns>
         public static async Task<string> AddData(Dictionary<string, string> auth, Enums.DataType dataType, string jData, bool update = false)
         {
-            //test data
-            //var data = TestData.Contests;
-
-            //var json = JsonConvert.SerializeObject(data);
-
             var obData = JsonConvert.DeserializeObject<JObject>(jData);
 
             var url = dataType + "/" + auth["uid"] + "/" + obData["Id"];
@@ -39,6 +34,7 @@ namespace HeyDo.Controllers
             return res.ToString();
             
         }
+
         /// <summary>
         /// Returns lists of data
         /// </summary>
@@ -46,14 +42,14 @@ namespace HeyDo.Controllers
         /// <param name="auth">Google atuh token</param>
         /// <param name="dataType">User, Task, Usertask</param>
         /// <returns></returns>
-        public static async Task<List<JObject>> GetData(Dictionary<string,string> auth, Enums.DataType dataType, string id = null)
+        public static async Task<List<JObject>> GetData(Dictionary<string, string> auth, Enums.DataType dataType,
+            string id = null)
         {
             var list = new List<JObject>();
 
             var url = dataType + "/" + auth["uid"] + id;
 
             var data = await DataAccess.ApiGoogle("GET", "", url, auth);
-
 
             if (data != null)
             {
@@ -62,27 +58,23 @@ namespace HeyDo.Controllers
                     list.Add(data);
                     return list;
                 }
+
+                if (id != null)
+                {
+                    list.Add(data.ToObject<JObject>());
+                }
                 else
                 {
-                    if (id != null)
+                    foreach (var o in data)
                     {
-                        list.Add(data.ToObject<JObject>());
-                    }
-                    else
-                    {
-                        foreach (var o in data)
-                        {
-                            list.Add(o.Value.ToObject<JObject>());
-                        }
+                        list.Add(o.Value.ToObject<JObject>());
                     }
                 }
                 return list;
             }
-            else
-            {
-                return list;
-            }
+            return list;
         }
+
         /// <summary>
         /// Deletes given data
         /// </summary>
