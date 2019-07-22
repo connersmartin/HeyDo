@@ -28,6 +28,14 @@ namespace HeyDo.Models
             Delete
         }
 
+        public enum Frequency
+        {
+            Daily,
+            Weekly,
+            BiWeekly,
+            Monthly,
+            BiMonthly
+        }
 
     }
 }

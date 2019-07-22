@@ -20,5 +20,6 @@ namespace HeyDo.Models
         public DateTime AssignedDateTime { get; set; }
         public DateTime CompletedDateTime { get; set; }
         public bool SendNow { get; set; }
+        public string CancelToken { get; set; }
     }
 }
