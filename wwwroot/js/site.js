@@ -1,9 +1,4 @@
-﻿// Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
-
-// Write your JavaScript code.
-
-// Your web app's Firebase configuration
+﻿//Firebase configuration
 var firebaseConfig = {
 
 };
@@ -51,7 +46,6 @@ $("#login").click(function () {
         alert(errorCode + " - " + errorMessage);
     });
 });
-
 
 function loginAPI() {
     $.ajax({

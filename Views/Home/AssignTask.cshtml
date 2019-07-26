@@ -24,7 +24,7 @@
                 <span asp-validation-for="UserTask.SendTime" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="checkbox"  id="check" asp-for="UserTask.SendNow"/>
+                <input type="checkbox" id="check" asp-for="UserTask.SendNow" />
                 <label asp-for="UserTask.SendNow" class="control-label"></label>
                 <span asp-validation-for="UserTask.SendNow" class="text-danger"></span>
             </div>
@@ -35,10 +35,8 @@
             </div>
             <div class="form-group">
                 <label asp-for="UserTask.ContactMethod" class="control-label"></label>
-                <input asp-for="UserTask.ContactMethod" class="form-control" />
-                <span asp-validation-for="UserTask.ContactMethod" class="text-danger"></span>
+                <br /><select asp-for="UserTask.ContactMethod" class="form-control" asp-items=ViewBag.ContactPreference></select>
             </div>
-
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>

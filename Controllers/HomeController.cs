@@ -68,6 +68,8 @@ namespace HeyDo.Controllers
         public IActionResult NewUser()
         {
             var dict = GetCookies();
+            
+            ViewData["ContactPreference"] = ContactEnumToList();
 
             return View();
         }
@@ -88,8 +90,19 @@ namespace HeyDo.Controllers
         public async Task<IActionResult> EditUser(string Id)
         {
             var dict = GetCookies();
-
             var data = await GetUsers(dict,Id);
+            var selectList = ContactEnumToList();
+
+            foreach (var item in selectList)
+            {
+                if (item.Value == data.FirstOrDefault().ContactPreference.ToString())
+                {
+                    item.Selected = true;
+                    break;
+                }
+            }
+
+            ViewData["ContactPreference"] = selectList;
 
             return View(data.FirstOrDefault());
                   
@@ -160,8 +173,12 @@ namespace HeyDo.Controllers
 
         #region Task Management
         [HttpGet]
-        public IActionResult NewTask()
+        public async Task<IActionResult> NewTask()
         {
+            var dict = GetCookies();
+
+            ViewData["UserIdList"] = UserIdToSelectList(await GetUsers(dict));
+            
             return View();
         }
 
@@ -183,6 +200,19 @@ namespace HeyDo.Controllers
             var dict = GetCookies();
 
             var task = await GetTasks(dict, Id);
+            
+            var selectList = UserIdToSelectList(await GetUsers(dict));
+
+            foreach (var item in selectList)
+            {
+                if (item.Value == task.FirstOrDefault().UserId.ToString())
+                {
+                    item.Selected = true;
+                    break;
+                }
+            }
+
+            ViewData["UserIdList"] = selectList;
 
             return View(task.FirstOrDefault());
 
@@ -282,24 +312,18 @@ namespace HeyDo.Controllers
         public async Task<IActionResult> AssignTask()
         {
             var dict = GetCookies();
-            var utl = new UserTaskList();
             //Get Users
             var userList = await GetUsers(dict);
-            var userSl = new List<SelectListItem>();
-            foreach (var user in userList)
-            {
-                userSl.Add(new SelectListItem(user.name,user.Id));
-            }
+            var userSl = UserIdToSelectList(userList);
 
             //Get Tasks
             var taskList = await GetTasks(dict);
-            var taskSl = new List<SelectListItem>();
-            foreach (var task in taskList)
-            {
-                taskSl.Add(new SelectListItem(task.Title, task.Id));
-            }
+            var taskSl = TaskIdToSelectList(taskList);
+
             //Get Times
             var timeList = GetTimes();
+
+            ViewData["ContactPreference"] = ContactEnumToList();
 
             return View("AssignTask", new UserTaskList(){Tasks = taskSl,Users = userSl, Times = timeList} );
         }
@@ -495,6 +519,41 @@ namespace HeyDo.Controllers
             }
 
             return times;
+        }
+        public List<SelectListItem> TaskIdToSelectList(List<TaskItem> tasks)
+        {
+            var taskList = new List<SelectListItem>();
+
+            foreach (var t in tasks)
+            {
+                taskList.Add(new SelectListItem(t.Title, t.Id));
+            }
+
+            return taskList;
+        }
+
+        public List<SelectListItem> UserIdToSelectList(List<User> users)
+        {
+            var userIdList = new List<SelectListItem>();
+            userIdList.Add(new SelectListItem("n/a", null,true));
+            foreach (var u in users )
+            {
+                userIdList.Add(new SelectListItem(u.name,u.Id));
+            }
+
+            return userIdList;
+        }
+
+        public List<SelectListItem> ContactEnumToList()
+        {
+            var contactList = new List<SelectListItem>();
+
+            foreach (var ct in Enum.GetValues(typeof(Enums.ContactType)))
+            {
+                contactList.Add(new SelectListItem(ct.ToString(), ct.ToString()));
+            }
+
+            return contactList;
         }
 
         /// <summary>

@@ -29,8 +29,7 @@
             </div>
             <div class="form-group">
                 <label asp-for="ContactPreference" class="control-label"></label>
-                <input asp-for="ContactPreference" class="form-control" />
-                <span asp-validation-for="ContactPreference" class="text-danger"></span>
+                <br/><select asp-for="ContactPreference" class="form-control" asp-items=ViewBag.ContactPreference></select>
             </div>
             <div class="form-group">
                 <label asp-for="name" class="control-label"></label>
