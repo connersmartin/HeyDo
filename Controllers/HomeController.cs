@@ -16,6 +16,7 @@ using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Hangfire;
+using Cronos;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace HeyDo.Controllers
@@ -454,7 +455,7 @@ namespace HeyDo.Controllers
         /// <param name="userTaskList"></param>
         /// <param name="dict"></param>
         /// <returns>nothing</returns>
-        public async Task SendNotification(UserTaskList userTaskList, Dictionary<string,string> dict)
+        public async Task SendNotification(UserTaskList userTaskList, Dictionary<string,string> dict, TaskSchedule taskSchedule = null)
         {
             //Test data, to be replaced by owner/admin data
             var tester = new SimpleUser() { name = "testing", email = AppSettings.AppSetting["testEmail"]};
@@ -478,27 +479,48 @@ namespace HeyDo.Controllers
                 MessageId = Guid.NewGuid().ToString(),
                 tags = new string[] { taskObj.Title },
                 sender = tester,
-                to = new SimpleUser[] { new SimpleUser() { name = userObj.name, email = userObj.email } },
+                to = new SimpleUser[] { new SimpleUser() { name = userObj.name, email = userTaskList.UserTask.ContactMethod==Enums.ContactType.Email ? userObj.email : userObj.Phone} },
                 htmlContent = taskObj.TaskDetails,
                 textContent = taskObj.TaskDetails,
                 subject = taskObj.Title,
                 replyTo = tester,
-                SendTime = userTaskList.UserTask.SendTime
+                SendTime = taskSchedule == null ? userTaskList.UserTask.SendTime : taskSchedule.Time
             };
-
-            //Immediately send message
-            if (userTaskList.UserTask.SendNow)
+            if (taskSchedule == null)
             {
-                BackgroundJob.Enqueue(() => mc.SendMessage(msg, userTaskList.UserTask.ContactMethod));
+                //Immediately send message
+                if (userTaskList.UserTask.SendNow)
+                {
+                    var single = BackgroundJob.Enqueue(() => mc.SendMessage(msg, userTaskList.UserTask.ContactMethod));
+                }
+                //wait until you say so
+                else
+                {
+                    var future = BackgroundJob.Schedule(() => mc.SendMessage(msg, userTaskList.UserTask.ContactMethod), msg.SendTime);
+                }
+           
             }
-            //wait until you say so
             else
             {
-                BackgroundJob.Schedule(() => mc.SendMessage(msg, userTaskList.UserTask.ContactMethod), msg.SendTime);
+                //TODO finish this, figure out logic
+                switch (taskSchedule.Frequency)
+                {
+                    case Enums.Frequency.Daily:
+                        RecurringJob.AddOrUpdate(() => mc.SendMessage(msg, userTaskList.UserTask.ContactMethod), Cron.Daily);
+                        break;
+                    case Enums.Frequency.Weekly:
+                        break;
+                    case Enums.Frequency.BiWeekly:
+                        break;
+                    case Enums.Frequency.Monthly:
+                        break;
+                    case Enums.Frequency.BiMonthly:
+                        break;
+                    default:
+                        break;
+                }
+                
             }
-            
-
-
 
             //use encryption?
         }
@@ -597,8 +619,8 @@ namespace HeyDo.Controllers
             {
                 if (dict["uid"] == null && dict["token"] == null)
                 {
-                    Set("token", b, 10000);
-                    Set("uid", a, 10000);
+                    Set("token", b, 10);
+                    Set("uid", a, 10);
                 }
                 return true;
             }
