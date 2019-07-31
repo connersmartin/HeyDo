@@ -61,6 +61,25 @@ namespace HeyDo.Controllers
                 return View();
             }
         }
+        
+        [HttpGet]
+        public async Task<IActionResult> HistoryDashboard()
+        {
+            var dict = GetCookies();
+            //Get Users
+            var userList = await GetUsers(dict);
+            var userSl = UserIdToSelectList(userList);
+
+
+
+            //Get Tasks
+            var taskList = await GetTasks(dict);
+            var taskSl = TaskIdToSelectList(taskList);
+
+            return View(new UserTaskList { Tasks = taskSl, Users = userSl });
+        }
+
+
         #endregion
 
         #region User Management
@@ -148,7 +167,7 @@ namespace HeyDo.Controllers
             var data = await GetOrSetCachedData(auth, Enums.DataType.Users, uid);
 
             var userList = new List<User>();
-            if (data.Count > 0)
+            if (data?.Count > 0 && data != null)
             {
                 if (data.FirstOrDefault().ContainsKey("Error"))
                 {
@@ -283,11 +302,12 @@ namespace HeyDo.Controllers
         /// View all Assignments made
         /// </summary>
         /// <returns></returns>
-        public async Task<IActionResult> ViewHistory()
+        public async Task<IActionResult> ViewHistory(UserTaskList userTaskList = null)
         {
             var dict = GetCookies();
 
             var data = await GetOrSetCachedData(dict, Enums.DataType.UserTasks);
+
             var taskList = new List<Usertask>();
             if (data.Count > 0)
             {
@@ -295,14 +315,30 @@ namespace HeyDo.Controllers
                 {
                     return RedirectToAction("Logout");
                 }
+
+                if (userTaskList.UserTask != null)
+                {
+                    foreach (var task in data)
+                    {
+                        if (task["UserIdAssigned"].ToString() == userTaskList.UserTask.UserIdAssigned ||
+                            task["TaskId"].ToString() == userTaskList.UserTask.TaskId)
+                        {
+                            taskList.Add(task.ToObject<Usertask>());
+                        }
+
+                    }
+                }
+                else
+                {
                     foreach (var task in data)
                     {
                         taskList.Add(task.ToObject<Usertask>());
                     }
+                }
+
 
                 return View(taskList);
-
-
+            
             }
 
             return View(taskList);
@@ -545,6 +581,7 @@ namespace HeyDo.Controllers
         public List<SelectListItem> TaskIdToSelectList(List<TaskItem> tasks)
         {
             var taskList = new List<SelectListItem>();
+            taskList.Add(new SelectListItem("Please select a Task", "0"));
 
             foreach (var t in tasks)
             {
@@ -557,7 +594,7 @@ namespace HeyDo.Controllers
         public List<SelectListItem> UserIdToSelectList(List<User> users)
         {
             var userIdList = new List<SelectListItem>();
-            userIdList.Add(new SelectListItem("n/a", null,true));
+            userIdList.Add(new SelectListItem("Please select a User", "0"));
             foreach (var u in users )
             {
                 userIdList.Add(new SelectListItem(u.name,u.Id));

@@ -1,0 +1,59 @@
+﻿@model HeyDo.Models.UserTaskList
+
+@{
+    ViewData["Title"] = "HistoryDashboard";
+}
+
+<h1>HistoryDashboard</h1>
+
+<h4>UserTaskList</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="ViewHistory">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group" id="taskSelect">
+                <input type="checkbox" id="taskCheck" />Choose a task?
+            </div>
+            <div class="form-group" id="taskList" style="display:none">
+                <label asp-for="UserTask.TaskId" class="control-label"></label>
+                <select asp-for="UserTask.TaskId" class="form-control" id="taskSelectList" asp-items="Model.Tasks"></select>
+                <span asp-validation-for="UserTask.TaskId" class="text-danger"></span>
+            </div>
+            <div class="form-group" id="userSelect">
+                <input type="checkbox" id="userCheck" />Choose a user?
+            </div>
+            <div class="form-group" id="userList" style="display:none">
+                <label asp-for="UserTask.UserIdAssigned" class="control-label"></label>
+                <select asp-for="UserTask.UserIdAssigned" class="form-control" id="userSelectList" asp-items="Model.Users"></select>
+                <span asp-validation-for="UserTask.UserIdAssigned" class="text-danger"></span>
+            </div>
+            <div>
+                <a asp-action="ViewHistory">View All History</a>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Go" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $("#userCheck").click(function() {
+            $("#userList").toggle();
+            $("#taskList").hide();
+            $("#taskCheck").prop("checked", false);
+            $("#taskSelectList").val("0");
+        })
+        $("#taskCheck").click(function() {
+            $("#taskList").toggle();
+            $("#userList").hide();
+            $("#userCheck").prop("checked", false);
+            $("#userSelectList").val("0");
+        })
+    </script>
+}
