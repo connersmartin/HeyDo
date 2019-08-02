@@ -581,7 +581,7 @@ namespace HeyDo.Controllers
         public List<SelectListItem> TaskIdToSelectList(List<TaskItem> tasks)
         {
             var taskList = new List<SelectListItem>();
-            taskList.Add(new SelectListItem("Please select a Task", "0"));
+            taskList.Add(new SelectListItem("Please select a Task", ""));
 
             foreach (var t in tasks)
             {
@@ -594,7 +594,7 @@ namespace HeyDo.Controllers
         public List<SelectListItem> UserIdToSelectList(List<User> users)
         {
             var userIdList = new List<SelectListItem>();
-            userIdList.Add(new SelectListItem("Please select a User", "0"));
+            userIdList.Add(new SelectListItem("Please select a User", ""));
             foreach (var u in users )
             {
                 userIdList.Add(new SelectListItem(u.name,u.Id));
