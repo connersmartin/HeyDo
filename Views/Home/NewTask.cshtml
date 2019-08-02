@@ -1,12 +1,12 @@
 ﻿@model HeyDo.Models.TaskItem
 
 @{
-    ViewData["Title"] = "NewTask";
+    ViewData["Title"] = "New Task";
 }
 
-<h1>NewTask</h1>
+<h1>New Task</h1>
 
-<h4>TaskItem</h4>
+<h4>Create a new task</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -14,8 +14,9 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="UserId" class="control-label"></label>
-                <br /><select asp-for="UserId" class="form-control" asp-items=ViewBag.UserIdList></select>
+                <br /><select asp-for="UserId" class="form-control" id="userSelect" disabled asp-items=ViewBag.UserIdList></select>
             </div>
+            <input type="checkbox" id="checkUser" /> Assign Specific User?
             <div class="form-group">
                 <label asp-for="Title" class="control-label"></label>
                 <input asp-for="Title" class="form-control" />
@@ -39,4 +40,10 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $("#checkUser").click(function() {
+            $("#userSelect").attr("disabled",!this.checked);
+           $("#userSelect").val("");
+        })
+        </script>
 }

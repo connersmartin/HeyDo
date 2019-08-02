@@ -16,7 +16,7 @@ $("#create").click(function () {
     var log = $("#logCreate").val();
     var pas = $("#passCreate").val();
     firebase.auth().createUserWithEmailAndPassword(log, pas).then(function () {
-            loginAPI();
+            loginAPI(true);
         },
         function(error) {
             var errorCode = error.code;
@@ -39,7 +39,7 @@ $("#login").click(function () {
     var log = $("#logIn").val();
     var pas = $("#passIn").val();
     firebase.auth().signInWithEmailAndPassword(log, pas).then(function (result) {
-        loginAPI();
+        loginAPI(false);
     }).catch(function (error) {
         var errorCode = error.code;
         var errorMessage = error.message;
@@ -47,7 +47,7 @@ $("#login").click(function () {
     });
 });
 
-function loginAPI() {
+function loginAPI(newAdmin) {
     $.ajax({
         url: "/Home/SetAuth",
         type: 'POST',
@@ -62,7 +62,12 @@ function loginAPI() {
             alert("error? "+ex.status + " - " + ex.statusText);
         },
         success: function (data) {
-            window.location.href = "../Home/Dashboard";
+            if (!newAdmin) {
+                window.location.href = "../Home/Dashboard";
+            } else {
+                window.location.href = "../Home/AddAdmin";
+            }
+            
         }
     });
 }

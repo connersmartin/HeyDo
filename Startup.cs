@@ -59,6 +59,7 @@ namespace HeyDo
                 app.UseHsts();
             }
          
+            app.UseHangfireServer();
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
@@ -68,7 +69,6 @@ namespace HeyDo
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
-            app.UseHangfireServer();
             app.UseHangfireDashboard();
         }
     }

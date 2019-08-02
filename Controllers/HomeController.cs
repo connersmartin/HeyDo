@@ -191,6 +191,76 @@ namespace HeyDo.Controllers
         }
         #endregion
 
+        #region Admin User
+        [HttpGet]
+        public async Task<IActionResult> AddAdmin()
+        {
+            var dict = GetCookies();
+
+            if (await GetAdmin(dict) == null)
+            {
+                return View();
+            }
+            else
+            {
+                return RedirectToAction("Dashboard");
+            }
+        }
+
+        //Add a new user
+        [HttpPost]
+        public async Task<IActionResult> AddAdmin(AdminUser user)
+        {
+            user.Id = Guid.NewGuid().ToString();
+            var dict = GetCookies();
+            var jData = JsonConvert.SerializeObject(user);
+            await UpdateAndClearCache(dict, Enums.DataType.AdminUser, Enums.UpdateType.Add, jData);
+
+            return RedirectToAction("Dashboard");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditAdmin()
+        {
+            var dict = GetCookies();
+            
+            var data = await GetAdmin(dict);
+            //nothing returned when attempting to edit. Can only mean that admin user can not be found
+            if (data == null)
+            {
+                return RedirectToAction("AddAdmin");
+            }
+
+            return View(data);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditAdmin(AdminUser user)
+        {
+            var dict = GetCookies();
+            var jData = JsonConvert.SerializeObject(user);
+            await UpdateAndClearCache(dict, Enums.DataType.AdminUser, Enums.UpdateType.Edit, jData);
+            return RedirectToAction("Dashboard");
+        }
+
+        public async Task<AdminUser> GetAdmin(Dictionary<string, string> auth, string uid = null)
+        {
+            var data = await GetOrSetCachedData(auth, Enums.DataType.AdminUser);
+            if (data == null)
+            {
+                Logout();
+            }
+            if (data.Count == 0)
+            {
+                return null;
+            }
+            var admin = data.FirstOrDefault().ToObject<AdminUser>();
+
+            return admin;
+        }
+
+        #endregion
+
         #region Task Management
         [HttpGet]
         public async Task<IActionResult> NewTask()
@@ -474,7 +544,10 @@ namespace HeyDo.Controllers
         private async Task<List<JObject>> GetOrSetCachedData(Dictionary<string, string> auth, Enums.DataType dataType, string id = null)
         {
             var authed = auth["uid"] == await AuthController.Google(auth["token"]);
-
+            if (!authed)
+            {
+                RedirectToAction("Logout");
+            }
             var data = new List<JObject>();
             var uData = new List<JObject>();
 
@@ -484,12 +557,14 @@ namespace HeyDo.Controllers
             {
                 // Key not in cache, so get data.
                 data = await DataController.GetData(auth, dataType);
-
-                // Save data in cache.
-                _cache.Set(auth["uid"] + dataType, data);
+                if (data.Count>0)
+                { 
+                    // Save data in cache if no error
+                    _cache.Set(auth["uid"] + dataType, data);
+                }
             }
 
-            if (id != null)
+            if (id != null && data.Count>0)
             {
                 var task = data.Find(u => u["Id"].ToString() == id);
                 uData.Add(task);
@@ -527,13 +602,9 @@ namespace HeyDo.Controllers
         /// <returns>nothing</returns>
         public async Task SendNotification(UserTaskList userTaskList, Dictionary<string,string> dict, TaskSchedule taskSchedule = null)
         {
-            //Test data, to be replaced by owner/admin data
-            var tester = new SimpleUser() { name = "testing", email = AppSettings.AppSetting["testEmail"]};
-
-            //TODO get admin user
-            //var adminUser = await DataController.GetData(dict, Enums.DataType.AdminUser, "/" + dict["uid"]);
-            //var adminUserObj = adminUser.First().ToObject<User>();
-            //var adminContact = new SimpleUser() { name = adminUserObj.name, email = adminUserObj.email };
+            //get admin info
+            var adminUserObj = await GetAdmin(dict);
+            var adminContact = new SimpleUser() { name = adminUserObj.name, email = adminUserObj.ReplyToEmail };
 
             //get contact info
             var user = await GetOrSetCachedData(dict, Enums.DataType.Users, userTaskList.UserTask.UserIdAssigned);
@@ -548,12 +619,12 @@ namespace HeyDo.Controllers
             {
                 MessageId = Guid.NewGuid().ToString(),
                 tags = new string[] { taskObj.Title },
-                sender = tester,
+                sender = adminContact,
                 to = new SimpleUser[] { new SimpleUser() { name = userObj.name, email = userTaskList.UserTask.ContactMethod==Enums.ContactType.Email ? userObj.email : userObj.Phone} },
                 htmlContent = taskObj.TaskDetails,
                 textContent = taskObj.TaskDetails,
                 subject = taskObj.Title,
-                replyTo = tester,
+                replyTo = adminContact,
                 SendTime = taskSchedule == null ? userTaskList.UserTask.SendTime : taskSchedule.Time
             };
             if (taskSchedule == null)
@@ -688,7 +759,7 @@ namespace HeyDo.Controllers
 
             if (a == await AuthController.Google(b))
             {
-                if (dict["uid"] == null && dict["token"] == null)
+                if (dict["uid"] == null && dict["token"] == null )
                 {
                     Set("token", b, 10);
                     Set("uid", a, 10);
@@ -706,7 +777,7 @@ namespace HeyDo.Controllers
             return new Dictionary<string, string>()
             {
                 {"uid", Get("uid")},
-                {"token", Get("token")}
+                {"token", Get("token") }                
             };
         }
 
