@@ -61,7 +61,7 @@ namespace HeyDo.Controllers
                 return View();
             }
         }
-        
+
         [HttpGet]
         public async Task<IActionResult> HistoryDashboard()
         {
@@ -88,7 +88,7 @@ namespace HeyDo.Controllers
         public IActionResult NewUser()
         {
             var dict = GetCookies();
-            
+
             ViewData["ContactPreference"] = ContactEnumToList();
 
             return View();
@@ -110,7 +110,7 @@ namespace HeyDo.Controllers
         public async Task<IActionResult> EditUser(string Id)
         {
             var dict = GetCookies();
-            var data = await GetUsers(dict,Id);
+            var data = await GetUsers(dict, Id);
             var selectList = ContactEnumToList();
 
             foreach (var item in selectList)
@@ -125,7 +125,7 @@ namespace HeyDo.Controllers
             ViewData["ContactPreference"] = selectList;
 
             return View(data.FirstOrDefault());
-                  
+
         }
 
         [HttpPost]
@@ -141,7 +141,7 @@ namespace HeyDo.Controllers
         public async Task<IActionResult> DeleteUser(string Id)
         {
             var dict = GetCookies();
-            await UpdateAndClearCache(dict, Enums.DataType.Users, Enums.UpdateType.Delete, "/"+Id);
+            await UpdateAndClearCache(dict, Enums.DataType.Users, Enums.UpdateType.Delete, "/" + Id);
             return RedirectToAction("ViewUsers");
         }
 
@@ -162,7 +162,7 @@ namespace HeyDo.Controllers
         /// </summary>
         /// <param name="auth"></param>
         /// <returns></returns>
-        public async Task<List<User>> GetUsers(Dictionary<string, string> auth, string uid=null)
+        public async Task<List<User>> GetUsers(Dictionary<string, string> auth, string uid = null)
         {
             var data = await GetOrSetCachedData(auth, Enums.DataType.Users, uid);
 
@@ -198,7 +198,7 @@ namespace HeyDo.Controllers
             var dict = GetCookies();
 
             ViewData["UserIdList"] = UserIdToSelectList(await GetUsers(dict));
-            
+
             return View();
         }
 
@@ -209,7 +209,7 @@ namespace HeyDo.Controllers
             task.Id = Guid.NewGuid().ToString();
             var dict = GetCookies();
             var jData = JsonConvert.SerializeObject(task);
-            await UpdateAndClearCache(dict, Enums.DataType.Tasks,Enums.UpdateType.Add, jData);
+            await UpdateAndClearCache(dict, Enums.DataType.Tasks, Enums.UpdateType.Add, jData);
 
             return RedirectToAction("ViewTasks");
         }
@@ -220,7 +220,7 @@ namespace HeyDo.Controllers
             var dict = GetCookies();
 
             var task = await GetTasks(dict, Id);
-            
+
             var selectList = UserIdToSelectList(await GetUsers(dict));
 
             foreach (var item in selectList)
@@ -252,7 +252,7 @@ namespace HeyDo.Controllers
         public async Task<IActionResult> DeleteTask(string Id)
         {
             var dict = GetCookies();
-            await UpdateAndClearCache(dict, Enums.DataType.Tasks,Enums.UpdateType.Delete,Id);
+            await UpdateAndClearCache(dict, Enums.DataType.Tasks, Enums.UpdateType.Delete, Id);
 
             return RedirectToAction("ViewTasks");
         }
@@ -264,13 +264,31 @@ namespace HeyDo.Controllers
             //Real life
             var taskList = await GetTasks(dict);
 
+            var users = await GetUsers(dict);
+
+            foreach (var t in taskList)
+            {
+                if (t.UserId != null)
+                {
+                    var user = users.Find(u => u.Id == t.UserId);
+                    if (user != null)
+                    {
+                        t.UserId = user.name;
+                    }
+                    else
+                    {
+                        t.UserId = "";
+                    }
+                }
+            }
+
             return View(taskList);
 
             //Test data
             //return View(TestData.TestTasks);
         }
 
-        public async Task<List<TaskItem>> GetTasks(Dictionary<string, string> auth, string id=null)
+        public async Task<List<TaskItem>> GetTasks(Dictionary<string, string> auth, string id = null)
         {
 
             var data = await GetOrSetCachedData(auth, Enums.DataType.Tasks, id);
@@ -284,10 +302,10 @@ namespace HeyDo.Controllers
                     Logout();
                     return taskList;
                 }
-                    foreach (var task in data)
-                    {
-                        taskList.Add(task.ToObject<TaskItem>());
-                    }
+                foreach (var task in data)
+                {
+                    taskList.Add(task.ToObject<TaskItem>());
+                }
                 return taskList;
             }
 
@@ -307,6 +325,8 @@ namespace HeyDo.Controllers
             var dict = GetCookies();
 
             var data = await GetOrSetCachedData(dict, Enums.DataType.UserTasks);
+            var users = await GetUsers(dict);
+            var tasks = await GetTasks(dict);
 
             var taskList = new List<Usertask>();
             if (data.Count > 0)
@@ -336,14 +356,28 @@ namespace HeyDo.Controllers
                     }
                 }
 
-
+                foreach (var t in taskList)
+                {
+                    var user = users.Find(u => u.Id == t.UserIdAssigned);
+                    var taskName = tasks.Find(tn => tn.Id == t.TaskId);
+                    if (user != null)
+                    {
+                        t.UserIdAssigned = user.name;
+                    }
+                    if (taskName != null)
+                    {
+                        t.TaskId = taskName.Title;
+                    }
+                }
                 return View(taskList);
-            
+
             }
 
             return View(taskList);
 
         }
+
+
 
         [HttpGet]
         public async Task<IActionResult> AssignTask()
