@@ -37,5 +37,14 @@ namespace HeyDo.Models
             BiMonthly
         }
 
+        public enum DayFrequency
+        {
+            First,
+            Second,
+            Third,
+            Fourth,
+            Last
+        }
+
     }
 }

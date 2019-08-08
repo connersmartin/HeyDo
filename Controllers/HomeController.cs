@@ -447,8 +447,6 @@ namespace HeyDo.Controllers
 
         }
 
-
-
         [HttpGet]
         public async Task<IActionResult> AssignTask()
         {
@@ -468,6 +466,7 @@ namespace HeyDo.Controllers
 
             return View("AssignTask", new UserTaskList(){Tasks = taskSl,Users = userSl, Times = timeList} );
         }
+        
         /// <summary>
         /// Assigns a task to a user and sends out a notification
         /// </summary>
@@ -527,6 +526,12 @@ namespace HeyDo.Controllers
             await SendNotification(userTaskList, dict);
             
             return RedirectToAction("ViewHistory");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SchedTask()
+        {
+            return View();
         }
 
         #endregion
@@ -683,6 +688,20 @@ namespace HeyDo.Controllers
 
             return times;
         }
+
+        public List<SelectListItem> GetDays()
+        {
+            var times = new List<SelectListItem>();
+            for (int i = 1; i < 32; i++)
+            {
+                times.Add(new SelectListItem(
+                    i.ToString(),
+                    i.ToString()
+                ));
+            }
+
+            return times;
+        }
         public List<SelectListItem> TaskIdToSelectList(List<TaskItem> tasks)
         {
             var taskList = new List<SelectListItem>();
@@ -718,6 +737,30 @@ namespace HeyDo.Controllers
             }
 
             return contactList;
+        }
+
+        public List<SelectListItem> FrequencyEnumToList()
+        {
+            var frequencyList = new List<SelectListItem>();
+
+            foreach (var ct in Enum.GetValues(typeof(Enums.Frequency)))
+            {
+                frequencyList.Add(new SelectListItem(ct.ToString(), ct.ToString()));
+            }
+
+            return frequencyList;
+        }
+
+        public List<SelectListItem> DayFrequencyEnumToList()
+        {
+            var dayFrequencyList = new List<SelectListItem>();
+
+            foreach (var ct in Enum.GetValues(typeof(Enums.DayFrequency)))
+            {
+                dayFrequencyList.Add(new SelectListItem(ct.ToString(), ct.ToString()));
+            }
+
+            return dayFrequencyList;
         }
 
         /// <summary>
