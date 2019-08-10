@@ -16,7 +16,7 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="UserTaskList.UserTask.UserIdAssigned" class="control-label"></label>
-                <select asp-for="UserTaskList.UserTask.UserIdAssigned" class="form-control" asp-items="Model.Users"></select>
+                <select asp-for="UserTaskList.UserTask.UserIdAssigned" class="form-control" asp-items="Model.UserTaskList.Users"></select>
                 <span asp-validation-for="UserTaskList.UserTask.UserIdAssigned" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -25,21 +25,40 @@
             </div>
             <div class="form-group">
                 <label asp-for="UserTaskList.UserTask.TaskId" class="control-label"></label>
-                <select asp-for="UserTaskList.UserTask.TaskId" class="form-control" asp-items="Model.Tasks"></select>
+                <select asp-for="UserTaskList.UserTask.TaskId" class="form-control" asp-items="Model.UserTaskList.Tasks"></select>
                 <span asp-validation-for="UserTaskList.UserTask.TaskId" class="text-danger"></span>
             </div>
-            <div class="form-group">X</div>
-            <div class="form-group">Day of Week</div>
-            <div class="form-group">Frequency</div>
-
+            <div class="form-group">
+                <label asp-for="TaskSchedule.DayFrequency" class="control-label"></label>
+                <br /><select asp-for="TaskSchedule.DayFrequency" class="form-control" asp-items=ViewBag.DayFrequency></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="TaskSchedule.DayOfWeek" class="control-label"></label>
+                <br /><select asp-for="TaskSchedule.DayOfWeek" class="form-control" asp-items=ViewBag.DayOfWeek></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="TaskSchedule.DayOfMonth" class="control-label"></label>
+                <br /><select asp-for="TaskSchedule.DayOfMonth" class="form-control" asp-items=ViewBag.Days></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="TaskSchedule.Frequency" class="control-label"></label>
+                <br /><select asp-for="TaskSchedule.Frequency" class="form-control" asp-items=ViewBag.Frequency></select>
+            </div>
             <div class="form-group" id="time">
                 <label asp-for="UserTaskList.UserTask.SendTime" class="control-label"></label>
-                <select asp-for="UserTaskList.UserTask.SendTime" class="form-control" asp-items="Model.Times"></select>
+                <select asp-for="UserTaskList.UserTask.SendTime" class="form-control" asp-items="Model.UserTaskList.Times"></select>
                 <span asp-validation-for="UserTaskList.UserTask.SendTime" class="text-danger"></span>
             </div>
-
-            <div class="form-group">Start Date</div>
-            <div class="form-group">End Date</div>
+            <div class="form-group">
+                <label asp-for="TaskSchedule.StartDate" class="control-label"></label>
+                <input asp-for="TaskSchedule.StartDate" type="date" class="form-control" />
+                <span asp-validation-for="TaskSchedule.StartDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TaskSchedule.EndDate" class="control-label"></label>
+                <input asp-for="TaskSchedule.EndDate" type ="date"class="form-control" />
+                <span asp-validation-for="TaskSchedule.EndDate" class="text-danger"></span>
+            </div>
 
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />

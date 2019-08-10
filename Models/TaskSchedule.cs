@@ -11,8 +11,11 @@ namespace HeyDo.Models
         public string Id { get; set; }
         public string UserTaskId { get; set; }
         public DateTime Time { get; set; }
-        public DayOfWeek Day { get; set; }
+        public DayOfWeek[] DayOfWeek { get; set; }
+        public int DayOfMonth { get; set; }
+
         public Enums.Frequency Frequency { get; set; }
+        public Enums.DayFrequency DayFrequency { get; set; }
         public bool Active { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }

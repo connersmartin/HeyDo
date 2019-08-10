@@ -544,9 +544,17 @@ namespace HeyDo.Controllers
             ViewData["Frequency"] = FrequencyEnumToList();
             ViewData["DayFrequency"] = DayFrequencyEnumToList();
             ViewData["Days"] = GetDays();
+            ViewData["DayOfWeek"] = DayOfWeekToList();
+            
+            return View(new UserTaskSchedule(){UserTaskList = new UserTaskList(){Tasks = taskSl,Times = GetTimes(),Users = userSl}});
+        }
 
-            //TODO SEND THIS DATA TO THE VIEW
-            return View();
+        [HttpPost]
+        public async Task<IActionResult> SchedTask(UserTaskSchedule userTaskSchedule)
+        {
+            //TODO Figure out hat needs to get changed. It looks like all the important data is getting passed!
+
+            return View("ViewTasks");
         }
 
         #endregion
@@ -722,7 +730,7 @@ namespace HeyDo.Controllers
             var taskList = new List<SelectListItem>();
             taskList.Add(new SelectListItem("Please select a Task", ""));
 
-            foreach (var t in tasks)
+            foreach (var t in tasks)    
             {
                 taskList.Add(new SelectListItem(t.Title, t.Id));
             }
@@ -776,6 +784,18 @@ namespace HeyDo.Controllers
             }
 
             return dayFrequencyList;
+        }
+
+        public List<SelectListItem> DayOfWeekToList()
+        {
+            var dowList = new List<SelectListItem>();
+
+            foreach (var ct in DayOfWeek.GetValues(typeof(DayOfWeek)))
+            {
+                dowList.Add(new SelectListItem(ct.ToString(), ct.ToString()));
+            }
+
+            return dowList;
         }
 
         /// <summary>
