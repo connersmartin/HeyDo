@@ -531,6 +531,21 @@ namespace HeyDo.Controllers
         [HttpGet]
         public async Task<IActionResult> SchedTask()
         {
+            var dict = GetCookies();
+            //Get Users
+            var userList = await GetUsers(dict);
+            var userSl = UserIdToSelectList(userList);
+
+            //Get Tasks
+            var taskList = await GetTasks(dict);
+            var taskSl = TaskIdToSelectList(taskList);
+
+            ViewData["ContactPreference"] = ContactEnumToList();
+            ViewData["Frequency"] = FrequencyEnumToList();
+            ViewData["DayFrequency"] = DayFrequencyEnumToList();
+            ViewData["Days"] = GetDays();
+
+            //TODO SEND THIS DATA TO THE VIEW
             return View();
         }
 

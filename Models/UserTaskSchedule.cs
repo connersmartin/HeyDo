@@ -7,7 +7,7 @@ namespace HeyDo.Models
 {
     public class UserTaskSchedule
     {
-        private UserTaskList UserTaskList { get; set; }
-        private TaskSchedule TaskSchedule { get; set; }
+        public UserTaskList UserTaskList { get; set; }
+        public TaskSchedule TaskSchedule { get; set; }
     }
 }

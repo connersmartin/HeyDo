@@ -6,7 +6,7 @@
 
 <h1>SchedTask</h1>
 <div>I would like to send {USER} a(n) {CONTACTTYPE} telling them to {USERTASK}</div>
-<div>This should happen every {X}{DAYOFWEEK} {FREQUENCY} at {TIME}</div>
+<div>This should happen every {X}{DAYOFWEEK} {FREQUENCY} at {TIME} starting {STARTDATE} and ending {ENDDATE}</div>
 <h4>UserTaskSchedule</h4>
 <hr />
 
@@ -14,6 +14,32 @@
     <div class="col-md-4">
         <form asp-action="SchedTask">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="UserTaskList.UserTask.UserIdAssigned" class="control-label"></label>
+                <select asp-for="UserTaskList.UserTask.UserIdAssigned" class="form-control" asp-items="Model.Users"></select>
+                <span asp-validation-for="UserTaskList.UserTask.UserIdAssigned" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UserTaskList.UserTask.ContactMethod" class="control-label"></label>
+                <br /><select asp-for="UserTaskList.UserTask.ContactMethod" class="form-control" asp-items=ViewBag.ContactPreference></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="UserTaskList.UserTask.TaskId" class="control-label"></label>
+                <select asp-for="UserTaskList.UserTask.TaskId" class="form-control" asp-items="Model.Tasks"></select>
+                <span asp-validation-for="UserTaskList.UserTask.TaskId" class="text-danger"></span>
+            </div>
+            <div class="form-group">X</div>
+            <div class="form-group">Day of Week</div>
+            <div class="form-group">Frequency</div>
+
+            <div class="form-group" id="time">
+                <label asp-for="UserTaskList.UserTask.SendTime" class="control-label"></label>
+                <select asp-for="UserTaskList.UserTask.SendTime" class="form-control" asp-items="Model.Times"></select>
+                <span asp-validation-for="UserTaskList.UserTask.SendTime" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">Start Date</div>
+            <div class="form-group">End Date</div>
 
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
