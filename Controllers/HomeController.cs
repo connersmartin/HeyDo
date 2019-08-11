@@ -183,8 +183,6 @@ namespace HeyDo.Controllers
                 }
 
                 return userList;
-
-
             }
 
             return userList;
@@ -394,55 +392,13 @@ namespace HeyDo.Controllers
         {
             var dict = GetCookies();
 
-            var data = await GetOrSetCachedData(dict, Enums.DataType.UserTasks);
-            var users = await GetUsers(dict);
-            var tasks = await GetTasks(dict);
+            var taskList = await GetUserTasks(dict);
 
-            var taskList = new List<Usertask>();
-            if (data.Count > 0)
+            if (taskList.Count == 0)
             {
-                if (data.FirstOrDefault().ContainsKey("Error"))
-                {
-                    return RedirectToAction("Logout");
-                }
-
-                if (userTaskList.UserTask != null)
-                {
-                    foreach (var task in data)
-                    {
-                        if (task["UserIdAssigned"].ToString() == userTaskList.UserTask.UserIdAssigned ||
-                            task["TaskId"].ToString() == userTaskList.UserTask.TaskId)
-                        {
-                            taskList.Add(task.ToObject<Usertask>());
-                        }
-
-                    }
-                }
-                else
-                {
-                    foreach (var task in data)
-                    {
-                        taskList.Add(task.ToObject<Usertask>());
-                    }
-                }
-
-                foreach (var t in taskList)
-                {
-                    var user = users.Find(u => u.Id == t.UserIdAssigned);
-                    var taskName = tasks.Find(tn => tn.Id == t.TaskId);
-                    if (user != null)
-                    {
-                        t.UserIdAssigned = user.name;
-                    }
-                    if (taskName != null)
-                    {
-                        t.TaskId = taskName.Title;
-                    }
-                }
-                return View(taskList);
-
+                return View("Dashboard");
             }
-
+            
             return View(taskList);
 
         }
@@ -494,7 +450,7 @@ namespace HeyDo.Controllers
             await UpdateAndClearCache(dict, Enums.DataType.UserTasks,Enums.UpdateType.Add, jData);
 
             //Send out notification
-            await SendNotification(userTaskList, dict);
+            await SendNotification(userTaskList.UserTask, dict);
 
             return RedirectToAction("ViewHistory");
         }
@@ -523,7 +479,7 @@ namespace HeyDo.Controllers
             //send the notification now, but not updating the task
             userTaskList.UserTask.SendNow = true;
 
-            await SendNotification(userTaskList, dict);
+            await SendNotification(userTaskList.UserTask, dict);
             
             return RedirectToAction("ViewHistory");
         }
@@ -552,11 +508,135 @@ namespace HeyDo.Controllers
         [HttpPost]
         public async Task<IActionResult> SchedTask(UserTaskSchedule userTaskSchedule)
         {
+            var dict = GetCookies();
             //TODO Figure out hat needs to get changed. It looks like all the important data is getting passed!
+            var ut = userTaskSchedule.UserTaskList.UserTask;
+            var ts = userTaskSchedule.TaskSchedule;
 
-            return View("ViewTasks");
+            ut.AssignedDateTime = DateTime.Now;
+            ut.Id = Guid.NewGuid().ToString();
+            ut.Complete = false;
+
+            var jData = JsonConvert.SerializeObject(ut);
+            //add the usertask
+            await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Add, jData);
+
+            ts.Id = Guid.NewGuid().ToString();
+            ts.UserTaskId = ut.Id;
+
+            jData = JsonConvert.SerializeObject(ts);
+            //add the task schedule
+            await UpdateAndClearCache(dict, Enums.DataType.TaskSchedule, Enums.UpdateType.Add, jData);
+
+            var t = SendNotification(ut, dict, ts);
+
+            return View("ViewSched");
+        }
+         
+        public async Task<IActionResult> ViewSched(UserTaskSchedule userTaskSchedule = null)
+        {
+            var dict = GetCookies();
+            var utsList = new List<UserTaskSchedule>();
+            //Get Task Schedules
+            var taskSchedules = await GetTaskSched(dict);
+            //Get Usertasks
+            var userTasks = await GetUserTasks(dict);
+            //Populate list
+            foreach (var ts in taskSchedules)
+            {
+                var ut = userTasks.Find(u => u.Id == ts.UserTaskId);
+                utsList.Add(new UserTaskSchedule()
+                {
+                    TaskSchedule = ts,
+                    UserTaskList = new UserTaskList() { UserTask = ut}
+                });
+            }
+            //TODO Show all currently scheduled tasks, maybe have next scheduled date listed too and skip/send now
+
+            return View(utsList);
         }
 
+        public async Task<List<TaskSchedule>> GetTaskSched(Dictionary<string, string> auth, string uid = null)
+        {
+            var data = await GetOrSetCachedData(auth, Enums.DataType.TaskSchedule, uid);
+
+            var tsList = new List<TaskSchedule>();
+            if (data?.Count > 0 && data != null)
+            {
+                if (data.FirstOrDefault().ContainsKey("Error"))
+                {
+                    Logout();
+
+                    return tsList;
+                }
+
+                foreach (var user in data)
+                {
+                    tsList.Add(user.ToObject<TaskSchedule>());
+                }
+
+                return tsList;
+            }
+
+            return tsList;
+        }
+
+        public async Task<List<Usertask>> GetUserTasks(Dictionary<string, string> dict, UserTaskList userTaskList =null)
+        {
+
+            var data = await GetOrSetCachedData(dict, Enums.DataType.UserTasks);
+            var users = await GetUsers(dict);
+            var tasks = await GetTasks(dict);
+
+            var taskList = new List<Usertask>();
+            if (data.Count > 0)
+            {
+                if (data.FirstOrDefault().ContainsKey("Error"))
+                {
+                    return taskList;
+                }
+
+                if (userTaskList != null)
+                {
+                    foreach (var task in data)
+                    {
+                        if (task["UserIdAssigned"].ToString() == userTaskList.UserTask.UserIdAssigned ||
+                            task["TaskId"].ToString() == userTaskList.UserTask.TaskId)
+                        {
+                            taskList.Add(task.ToObject<Usertask>());
+                        }
+
+                    }
+                }
+                else
+                {
+                    foreach (var task in data)
+                    {
+                        taskList.Add(task.ToObject<Usertask>());
+                    }
+                }
+
+                foreach (var t in taskList)
+                {
+                    var user = users.Find(u => u.Id == t.UserIdAssigned);
+                    var taskName = tasks.Find(tn => tn.Id == t.TaskId);
+                    if (user != null)
+                    {
+                        t.UserIdAssigned = user.name;
+                    }
+
+                    if (taskName != null)
+                    {
+                        t.TaskId = taskName.Title;
+                    }
+                }
+
+                return taskList;
+
+            }
+
+            return taskList;
+        }
         #endregion
 
         #region Helper functions
@@ -628,17 +708,17 @@ namespace HeyDo.Controllers
         /// <param name="userTaskList"></param>
         /// <param name="dict"></param>
         /// <returns>nothing</returns>
-        public async Task SendNotification(UserTaskList userTaskList, Dictionary<string,string> dict, TaskSchedule taskSchedule = null)
+        public async Task SendNotification(Usertask userTask, Dictionary<string,string> dict, TaskSchedule taskSchedule = null)
         {
             //get admin info
             var adminUserObj = await GetAdmin(dict);
             var adminContact = new SimpleUser() { name = adminUserObj.name, email = adminUserObj.ReplyToEmail };
 
             //get contact info
-            var user = await GetOrSetCachedData(dict, Enums.DataType.Users, userTaskList.UserTask.UserIdAssigned);
+            var user = await GetOrSetCachedData(dict, Enums.DataType.Users, userTask.UserIdAssigned);
             var userObj = user.First().ToObject<User>();
             //get task
-            var task = await GetOrSetCachedData(dict, Enums.DataType.Tasks, userTaskList.UserTask.TaskId);
+            var task = await GetOrSetCachedData(dict, Enums.DataType.Tasks, userTask.TaskId);
             var taskObj = task.First().ToObject<TaskItem>();
 
             //Make message
@@ -648,24 +728,24 @@ namespace HeyDo.Controllers
                 MessageId = Guid.NewGuid().ToString(),
                 tags = new string[] { taskObj.Title },
                 sender = adminContact,
-                to = new SimpleUser[] { new SimpleUser() { name = userObj.name, email = userTaskList.UserTask.ContactMethod==Enums.ContactType.Email ? userObj.email : userObj.Phone} },
+                to = new SimpleUser[] { new SimpleUser() { name = userObj.name, email = userTask.ContactMethod==Enums.ContactType.Email ? userObj.email : userObj.Phone} },
                 htmlContent = taskObj.TaskDetails,
                 textContent = taskObj.TaskDetails,
                 subject = taskObj.Title,
                 replyTo = adminContact,
-                SendTime = taskSchedule == null ? userTaskList.UserTask.SendTime : taskSchedule.Time
+                SendTime = taskSchedule == null ? userTask.SendTime : taskSchedule.Time
             };
             if (taskSchedule == null)
             {
                 //Immediately send message
-                if (userTaskList.UserTask.SendNow)
+                if (userTask.SendNow)
                 {
-                    var single = BackgroundJob.Enqueue(() => mc.SendMessage(msg, userTaskList.UserTask.ContactMethod));
+                    var single = BackgroundJob.Enqueue(() => mc.SendMessage(msg, userTask.ContactMethod));
                 }
                 //wait until you say so
                 else
                 {
-                    var future = BackgroundJob.Schedule(() => mc.SendMessage(msg, userTaskList.UserTask.ContactMethod), msg.SendTime);
+                    var future = BackgroundJob.Schedule(() => mc.SendMessage(msg, userTask.ContactMethod), msg.SendTime);
                 }
            
             }
@@ -675,7 +755,7 @@ namespace HeyDo.Controllers
                 switch (taskSchedule.Frequency)
                 {
                     case Enums.Frequency.Daily:
-                        RecurringJob.AddOrUpdate(() => mc.SendMessage(msg, userTaskList.UserTask.ContactMethod), Cron.Daily);
+                        RecurringJob.AddOrUpdate(() => mc.SendMessage(msg, userTask.ContactMethod), Cron.Daily);
                         break;
                     case Enums.Frequency.Weekly:
                         break;

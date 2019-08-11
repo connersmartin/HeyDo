@@ -18,6 +18,7 @@ namespace HeyDo.Models
             AdminUser,
             Users,
             Tasks,
+            TaskSchedule,
             UserTasks
         }
 

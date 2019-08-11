@@ -21,23 +21,31 @@ namespace HeyDo.Controllers
         /// <param name="cType">Contact type, Email or Phone</param>
         public void SendMessage(MessageData msg, Enums.ContactType cType)
         {
-            switch (cType)
+            //don't need to send a message while testing
+            if (true)
             {
-                case Enums.ContactType.Email:
-                    //Test data
-                    //var success = EmailAgent.SendMail(TestData.TestSms);
-                    //Real life
-                    var success = EmailAgent.SendMail(msg);
-                    break;
-                case Enums.ContactType.Phone:
-                    //Test data
-                    //SmsAgent.TwiSend(TestData.TestSms);
-                    //Real life
-                    SmsAgent.TwiSend(msg);
-                    break;
-                default:
-                    break;
-            }            
+                Console.WriteLine("Done");
+            }
+            else
+            {
+                switch (cType)
+                {
+                    case Enums.ContactType.Email:
+                        //Test data
+                        //var success = EmailAgent.SendMail(TestData.TestSms);
+                        //Real life
+                        var success = EmailAgent.SendMail(msg);
+                        break;
+                    case Enums.ContactType.Phone:
+                        //Test data
+                        //SmsAgent.TwiSend(TestData.TestSms);
+                        //Real life
+                        SmsAgent.TwiSend(msg);
+                        break;
+                    default:
+                        break;
+                }         
+            }
         }
     }
 }
