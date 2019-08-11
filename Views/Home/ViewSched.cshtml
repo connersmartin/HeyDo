@@ -5,25 +5,48 @@
 }
 
 <h1>ViewSched</h1>
-
+<div>I would like to send {USER} a(n) {CONTACTTYPE} telling them to {USERTASK}</div>
+<div>This should happen every {X}{DAYOFWEEK} {FREQUENCY} at {TIME} starting {STARTDATE} and ending {ENDDATE}</div>
 <p>
     <a asp-action="SchedTask">Create New Schedule</a>
 </p>
 <table class="table">
     <thead>
-        <tr>
-            <th></th>
-        </tr>
+    <tr>
+        <th>User</th>
+        <th>Contact Type</th>
+        <th>Task</th>
+        <th>Day</th>
+        <th>Day of Week</th>
+        <th>Day Frequency</th>
+        <th>Frequency</th>
+        <th>Time</th>
+        <th>Start Date</th>
+        <th>End Date</th>
+        <th>Actions</th>
+    </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+        @foreach (var item in Model)
+        {
         <tr>
+            <td>@Html.DisplayFor(modelItem => item.UserTaskList.UserTask.UserIdAssigned)</td>
+            <td>@Html.DisplayFor(modelItem => item.UserTaskList.UserTask.ContactMethod)</td>
+            <td>@Html.DisplayFor(modelItem => item.UserTaskList.UserTask.TaskId)</td>
+            <td>@Html.DisplayFor(modelItem => item.TaskSchedule.DayOfMonth)</td>
+            <td>@Html.DisplayFor(modelItem => item.TaskSchedule.DayOfWeek)</td>
+            <td>@Html.DisplayFor(modelItem => item.TaskSchedule.DayFrequency)</td>
+            <td>@Html.DisplayFor(modelItem => item.TaskSchedule.Frequency)</td>
+            <td>@Html.DisplayFor(modelItem => item.TaskSchedule.Time)</td>
+            <td>@Html.DisplayFor(modelItem => item.TaskSchedule.StartDate)</td>
+            <td>@Html.DisplayFor(modelItem => item.TaskSchedule.EndDate)</td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+                @Html.ActionLink("Edit", "Edit", new {/* id=item.PrimaryKey */}) |
+                @Html.ActionLink("Skip Next", "Skip", new {/* id=item.PrimaryKey */}) |
+                @Html.ActionLink("Send Now", "Delete", new {/* id=item.PrimaryKey */}) |
+                @Html.ActionLink("Delete", "Delete", new {/* id=item.PrimaryKey */})
             </td>
         </tr>
-}
+        }
     </tbody>
 </table>

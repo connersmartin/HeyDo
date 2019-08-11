@@ -13,7 +13,6 @@ namespace HeyDo.Models
         public DateTime Time { get; set; }
         public DayOfWeek[] DayOfWeek { get; set; }
         public int DayOfMonth { get; set; }
-
         public Enums.Frequency Frequency { get; set; }
         public Enums.DayFrequency DayFrequency { get; set; }
         public bool Active { get; set; }
