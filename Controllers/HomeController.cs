@@ -517,6 +517,8 @@ namespace HeyDo.Controllers
             ut.Id = Guid.NewGuid().ToString();
             ut.Complete = false;
 
+            ts.Time = ut.SendTime;
+
             var jData = JsonConvert.SerializeObject(ut);
             //add the usertask
             await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Add, jData);
@@ -527,10 +529,9 @@ namespace HeyDo.Controllers
             jData = JsonConvert.SerializeObject(ts);
             //add the task schedule
             await UpdateAndClearCache(dict, Enums.DataType.TaskSchedule, Enums.UpdateType.Add, jData);
-
             var t = SendNotification(ut, dict, ts);
 
-            return View("ViewSched");
+            return RedirectToAction("ViewSched");
         }
          
         public async Task<IActionResult> ViewSched(UserTaskSchedule userTaskSchedule = null)
@@ -747,33 +748,18 @@ namespace HeyDo.Controllers
                 {
                     var future = BackgroundJob.Schedule(() => mc.SendMessage(msg, userTask.ContactMethod), msg.SendTime);
                 }
-           
+
             }
             else
             {
+                var freq = GetCronString(taskSchedule);
                 //TODO finish this, figure out logic
-                switch (taskSchedule.Frequency)
-                {
-                    case Enums.Frequency.Daily:
-                        RecurringJob.AddOrUpdate(() => mc.SendMessage(msg, userTask.ContactMethod), Cron.Daily);
-                        break;
-                    case Enums.Frequency.Weekly:
-                        break;
-                    case Enums.Frequency.BiWeekly:
-                        break;
-                    case Enums.Frequency.Monthly:
-                        break;
-                    case Enums.Frequency.BiMonthly:
-                        break;
-                    default:
-                        break;
-                }
-                
+                RecurringJob.AddOrUpdate(taskSchedule.Id, () => mc.SendMessage(msg, userTask.ContactMethod), freq );
             }
 
             //use encryption?
         }
-
+        #region SelectListFunctions
         /// <summary>
         /// Gets a list of hours 0-23 from drop down menu
         /// </summary>
@@ -795,6 +781,7 @@ namespace HeyDo.Controllers
         public List<SelectListItem> GetDays()
         {
             var times = new List<SelectListItem>();
+            times.Add(new SelectListItem("n/a", "n/a"));
             for (int i = 1; i < 32; i++)
             {
                 times.Add(new SelectListItem(
@@ -857,7 +844,7 @@ namespace HeyDo.Controllers
         public List<SelectListItem> DayFrequencyEnumToList()
         {
             var dayFrequencyList = new List<SelectListItem>();
-
+            dayFrequencyList.Add(new SelectListItem("n/a", "n/a"));
             foreach (var ct in Enum.GetValues(typeof(Enums.DayFrequency)))
             {
                 dayFrequencyList.Add(new SelectListItem(ct.ToString(), ct.ToString()));
@@ -869,13 +856,29 @@ namespace HeyDo.Controllers
         public List<SelectListItem> DayOfWeekToList()
         {
             var dowList = new List<SelectListItem>();
-
-            foreach (var ct in DayOfWeek.GetValues(typeof(DayOfWeek)))
+            foreach (var ct in Enum.GetValues(typeof(DayOfWeek)))
             {
                 dowList.Add(new SelectListItem(ct.ToString(), ct.ToString()));
             }
 
             return dowList;
+        }
+        #endregion
+        public string GetCronString(TaskSchedule taskSchedule)
+        {
+            //Set Cron strings for common settings
+            switch (taskSchedule.Frequency)
+            {
+                case Enums.Frequency.Daily:
+                    return string.Format("0 {0} * * 0-6", taskSchedule.Time.Hour.ToString());
+                case Enums.Frequency.Weekly:
+                    var ds = taskSchedule.DayOfWeek.Select(s => s.ToString().ToUpper().Substring(0, 3));
+                    return string.Format("0 {0} * * {1}", taskSchedule.Time.Hour.ToString(), string.Join(',', ds));
+                case Enums.Frequency.Monthly:
+                    return string.Format("0 {0} {1} * *", taskSchedule.Time.Hour.ToString(), taskSchedule.DayOfMonth);
+                default:
+                    return "";
+            }
         }
 
         /// <summary>
