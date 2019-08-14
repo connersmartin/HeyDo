@@ -383,22 +383,186 @@ namespace HeyDo.Controllers
 
         #endregion
 
+        #region Schedule Management
+        [HttpGet]
+        public async Task<IActionResult> SchedTask()
+        {
+            var dict = GetCookies();
+            //Get Users
+            var userList = await GetUsers(dict);
+            var userSl = UserIdToSelectList(userList);
+
+            //Get Tasks
+            var taskList = await GetTasks(dict);
+            var taskSl = TaskIdToSelectList(taskList);
+
+            ViewData["ContactPreference"] = ContactEnumToList();
+            ViewData["Frequency"] = FrequencyEnumToList();
+            ViewData["DayFrequency"] = DayFrequencyEnumToList();
+            ViewData["Days"] = GetDays();
+            ViewData["DayOfWeek"] = DayOfWeekToList();
+
+            return View(new UserTaskSchedule() { UserTaskList = new UserTaskList() { Tasks = taskSl, Times = GetTimes(), Users = userSl } });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SchedTask(UserTaskSchedule userTaskSchedule)
+        {
+            var dict = GetCookies();
+            //TODO Figure out hat needs to get changed. It looks like all the important data is getting passed!
+            var ut = userTaskSchedule.UserTaskList.UserTask;
+            var ts = userTaskSchedule.TaskSchedule;
+
+            ut.AssignedDateTime = DateTime.Now;
+            ut.Id = Guid.NewGuid().ToString();
+            ut.Complete = false;
+
+            ts.Time = ut.SendTime;
+
+            var jData = JsonConvert.SerializeObject(ut);
+            //add the usertask
+            await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Add, jData);
+
+            ts.Id = Guid.NewGuid().ToString();
+            ts.UserTaskId = ut.Id;
+
+            jData = JsonConvert.SerializeObject(ts);
+            //add the task schedule
+            await UpdateAndClearCache(dict, Enums.DataType.TaskSchedule, Enums.UpdateType.Add, jData);
+            var t = SendNotification(ut, dict, ts);
+
+            return RedirectToAction("ViewSched");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditSched(string id)
+        {
+            var dict = GetCookies();
+            var uts = GetOrSetCachedData(dict, Enums.DataType.TaskSchedule, id);
+
+            ViewData["ContactPreference"] = ContactEnumToList();
+            ViewData["Frequency"] = FrequencyEnumToList();
+            ViewData["DayFrequency"] = DayFrequencyEnumToList();
+            ViewData["Days"] = GetDays();
+            ViewData["DayOfWeek"] = DayOfWeekToList();
+            return View(uts);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditSched(UserTaskSchedule userTaskSchedule)
+        {
+            var dict = GetCookies();
+            var jData = JsonConvert.SerializeObject(userTaskSchedule.TaskSchedule);
+            //I think we need to delete it then add a new one
+
+            await UpdateAndClearCache(dict, Enums.DataType.TaskSchedule, Enums.UpdateType.Edit, jData);
+            //schedule new one
+            return RedirectToAction("ViewSched");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DeleteSched(string id)
+        {
+            var dict = GetCookies();
+            RecurringJob.RemoveIfExists(id);
+            //delete from db
+            await UpdateAndClearCache(dict, Enums.DataType.TaskSchedule, Enums.UpdateType.Delete, id);
+            //Remove from hangfire
+            return RedirectToAction("ViewSched");
+        }
+        public async Task<IActionResult> ViewSched(UserTaskSchedule userTaskSchedule = null)
+        {
+            var dict = GetCookies();
+            var utsList = new List<UserTaskSchedule>();
+            //Get Task Schedules
+            var taskSchedules = await GetTaskSched(dict);
+            //Get Usertasks
+            var userTasks = await GetUserTasks(dict);
+            //Populate list
+            foreach (var ts in taskSchedules)
+            {
+                var ut = userTasks.Find(u => u.Id == ts.UserTaskId);
+                utsList.Add(new UserTaskSchedule()
+                {
+                    TaskSchedule = ts,
+                    UserTaskList = new UserTaskList() { UserTask = ut }
+                });
+            }
+            //TODO Show all currently scheduled tasks, maybe have next scheduled date listed too and skip/send now
+
+            return View(utsList);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> RandTask()
+        {
+            var dict = GetCookies();
+            var usr = await GetUsers(dict);
+            ViewData["Users"] = UserIdToSelectList(usr);
+            var tsk = await GetTasks(dict);
+            ViewData["Tasks"] = TaskIdToSelectList(tsk);
+
+            return View("RandTask");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RandTask(GroupTaskSchedule groupTaskSchedule)
+        {
+            var dict = GetCookies();
+            groupTaskSchedule.Id = Guid.NewGuid().ToString();
+            //get users
+            var userList = GetUsers(dict);
+            //get tasks
+            var taskList = GetTasks(dict);
+            //magic
+            //would need to figure out how to randomly schedule a task
+            //something like OnScheduledTask but NextRandomTask
+            return View();
+        }
+        public async Task<List<TaskSchedule>> GetTaskSched(Dictionary<string, string> auth, string uid = null)
+        {
+            var data = await GetOrSetCachedData(auth, Enums.DataType.TaskSchedule, uid);
+
+            var tsList = new List<TaskSchedule>();
+            if (data?.Count > 0 && data != null)
+            {
+                if (data.FirstOrDefault().ContainsKey("Error"))
+                {
+                    Logout();
+
+                    return tsList;
+                }
+
+                foreach (var user in data)
+                {
+                    tsList.Add(user.ToObject<TaskSchedule>());
+                }
+
+                return tsList;
+            }
+
+            return tsList;
+        }
+        #endregion
+
         #region Assignments
         /// <summary>
         /// View all Assignments made
         /// </summary>
         /// <returns></returns>
-        public async Task<IActionResult> ViewHistory(UserTaskList userTaskList = null)
+        public async Task<IActionResult> ViewHistory(UserTaskList userTaskList)
         {
             var dict = GetCookies();
+            var taskList = new List<Usertask>();
             //passing a usertasklist to filter if requested
-            var taskList = await GetUserTasks(dict,userTaskList);
+            taskList = await GetUserTasks(dict);
+
 
             if (taskList.Count == 0)
             {
                 return View("Dashboard");
             }
-            
+
             return View(taskList);
 
         }
@@ -482,133 +646,7 @@ namespace HeyDo.Controllers
             await SendNotification(userTaskList.UserTask, dict);
             
             return RedirectToAction("ViewHistory");
-        }
-        /// <summary>
-        /// Schedule a task to be sent in the future
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet]
-        public async Task<IActionResult> SchedTask()
-        {
-            var dict = GetCookies();
-            //Get Users
-            var userList = await GetUsers(dict);
-            var userSl = UserIdToSelectList(userList);
-
-            //Get Tasks
-            var taskList = await GetTasks(dict);
-            var taskSl = TaskIdToSelectList(taskList);
-
-            ViewData["ContactPreference"] = ContactEnumToList();
-            ViewData["Frequency"] = FrequencyEnumToList();
-            ViewData["DayFrequency"] = DayFrequencyEnumToList();
-            ViewData["Days"] = GetDays();
-            ViewData["DayOfWeek"] = DayOfWeekToList();
-            
-            return View(new UserTaskSchedule(){UserTaskList = new UserTaskList(){Tasks = taskSl,Times = GetTimes(),Users = userSl}});
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> SchedTask(UserTaskSchedule userTaskSchedule)
-        {
-            var dict = GetCookies();
-            //TODO Figure out hat needs to get changed. It looks like all the important data is getting passed!
-            var ut = userTaskSchedule.UserTaskList.UserTask;
-            var ts = userTaskSchedule.TaskSchedule;
-
-            ut.AssignedDateTime = DateTime.Now;
-            ut.Id = Guid.NewGuid().ToString();
-            ut.Complete = false;
-
-            ts.Time = ut.SendTime;
-
-            var jData = JsonConvert.SerializeObject(ut);
-            //add the usertask
-            await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Add, jData);
-
-            ts.Id = Guid.NewGuid().ToString();
-            ts.UserTaskId = ut.Id;
-
-            jData = JsonConvert.SerializeObject(ts);
-            //add the task schedule
-            await UpdateAndClearCache(dict, Enums.DataType.TaskSchedule, Enums.UpdateType.Add, jData);
-            var t = SendNotification(ut, dict, ts);
-
-            return RedirectToAction("ViewSched");
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> RandTask()
-        {
-            var dict = GetCookies();
-            var usr = await GetUsers(dict);
-            ViewData["Users"] = UserIdToSelectList(usr);
-            var tsk = await GetTasks(dict);
-            ViewData["Tasks"] = TaskIdToSelectList(tsk);
-
-            return View("RandTask");
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> RandTask(GroupTaskSchedule groupTaskSchedule)
-        {
-            groupTaskSchedule.Id = Guid.NewGuid().ToString();
-            //get users
-
-            //get tasks
-
-            //magic
-            //would need to figure out how to randomly schedule a task
-            //something like OnScheduledTask but NextRandomTask
-            return View();
-        }
-        public async Task<IActionResult> ViewSched(UserTaskSchedule userTaskSchedule = null)
-        {
-            var dict = GetCookies();
-            var utsList = new List<UserTaskSchedule>();
-            //Get Task Schedules
-            var taskSchedules = await GetTaskSched(dict);
-            //Get Usertasks
-            var userTasks = await GetUserTasks(dict);
-            //Populate list
-            foreach (var ts in taskSchedules)
-            {
-                var ut = userTasks.Find(u => u.Id == ts.UserTaskId);
-                utsList.Add(new UserTaskSchedule()
-                {
-                    TaskSchedule = ts,
-                    UserTaskList = new UserTaskList() { UserTask = ut}
-                });
-            }
-            //TODO Show all currently scheduled tasks, maybe have next scheduled date listed too and skip/send now
-
-            return View(utsList);
-        }
-
-        public async Task<List<TaskSchedule>> GetTaskSched(Dictionary<string, string> auth, string uid = null)
-        {
-            var data = await GetOrSetCachedData(auth, Enums.DataType.TaskSchedule, uid);
-
-            var tsList = new List<TaskSchedule>();
-            if (data?.Count > 0 && data != null)
-            {
-                if (data.FirstOrDefault().ContainsKey("Error"))
-                {
-                    Logout();
-
-                    return tsList;
-                }
-
-                foreach (var user in data)
-                {
-                    tsList.Add(user.ToObject<TaskSchedule>());
-                }
-
-                return tsList;
-            }
-
-            return tsList;
-        }
+        }    
 
         public async Task<List<Usertask>> GetUserTasks(Dictionary<string, string> dict, UserTaskList userTaskList =null)
         {

@@ -41,10 +41,10 @@
             <td>@Html.DisplayFor(modelItem => item.TaskSchedule.StartDate)</td>
             <td>@Html.DisplayFor(modelItem => item.TaskSchedule.EndDate)</td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new {/* id=item.PrimaryKey */}) |
-                @Html.ActionLink("Skip Next", "Skip", new {/* id=item.PrimaryKey */}) |
-                @Html.ActionLink("Send Now", "Delete", new {/* id=item.PrimaryKey */}) |
-                @Html.ActionLink("Delete", "Delete", new {/* id=item.PrimaryKey */})
+                @Html.ActionLink("Edit", "EditSched", new {id=item.TaskSchedule.Id}) |
+                @Html.ActionLink("Skip Next", "Skip", new {/*id=item.TaskSchedule.Id*/}) |
+                @Html.ActionLink("Send Now", "ResendTask", new {id=item.UserTaskList.UserTask.Id}) |
+                @Html.ActionLink("Delete", "DeleteSched", new {id=item.TaskSchedule.Id})
             </td>
         </tr>
         }
