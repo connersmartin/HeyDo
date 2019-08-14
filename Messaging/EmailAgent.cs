@@ -24,7 +24,6 @@ namespace HeyDo.Messaging
             request.AddHeader("Content-Type", "application/json");
             request.AddParameter("undefined", JsonConvert.SerializeObject(emailData), ParameterType.RequestBody);
             IRestResponse response = client.Execute(request);
-
             return response.StatusCode.ToString();
         }
 

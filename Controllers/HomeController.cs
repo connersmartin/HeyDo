@@ -391,8 +391,8 @@ namespace HeyDo.Controllers
         public async Task<IActionResult> ViewHistory(UserTaskList userTaskList = null)
         {
             var dict = GetCookies();
-
-            var taskList = await GetUserTasks(dict);
+            //passing a usertasklist to filter if requested
+            var taskList = await GetUserTasks(dict,userTaskList);
 
             if (taskList.Count == 0)
             {
@@ -483,7 +483,10 @@ namespace HeyDo.Controllers
             
             return RedirectToAction("ViewHistory");
         }
-
+        /// <summary>
+        /// Schedule a task to be sent in the future
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         public async Task<IActionResult> SchedTask()
         {
@@ -533,7 +536,32 @@ namespace HeyDo.Controllers
 
             return RedirectToAction("ViewSched");
         }
-         
+
+        [HttpGet]
+        public async Task<IActionResult> RandTask()
+        {
+            var dict = GetCookies();
+            var usr = await GetUsers(dict);
+            ViewData["Users"] = UserIdToSelectList(usr);
+            var tsk = await GetTasks(dict);
+            ViewData["Tasks"] = TaskIdToSelectList(tsk);
+
+            return View("RandTask");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RandTask(GroupTaskSchedule groupTaskSchedule)
+        {
+            groupTaskSchedule.Id = Guid.NewGuid().ToString();
+            //get users
+
+            //get tasks
+
+            //magic
+            //would need to figure out how to randomly schedule a task
+            //something like OnScheduledTask but NextRandomTask
+            return View();
+        }
         public async Task<IActionResult> ViewSched(UserTaskSchedule userTaskSchedule = null)
         {
             var dict = GetCookies();
@@ -759,6 +787,23 @@ namespace HeyDo.Controllers
 
             //use encryption?
         }
+        public string GetCronString(TaskSchedule taskSchedule)
+        {
+            //Set Cron strings for common settings
+            switch (taskSchedule.Frequency)
+            {
+                case Enums.Frequency.Daily:
+                    return string.Format("0 {0} * * 0-6", taskSchedule.Time.Hour.ToString());
+                case Enums.Frequency.Weekly:
+                    var ds = taskSchedule.DayOfWeek.Select(s => s.ToString().ToUpper().Substring(0, 3));
+                    return string.Format("0 {0} * * {1}", taskSchedule.Time.Hour.ToString(), string.Join(',', ds));
+                case Enums.Frequency.Monthly:
+                    return string.Format("0 {0} {1} * *", taskSchedule.Time.Hour.ToString(), taskSchedule.DayOfMonth);
+                default:
+                    return "";
+            }
+        }
+
         #region SelectListFunctions
         /// <summary>
         /// Gets a list of hours 0-23 from drop down menu
@@ -864,23 +909,6 @@ namespace HeyDo.Controllers
             return dowList;
         }
         #endregion
-        public string GetCronString(TaskSchedule taskSchedule)
-        {
-            //Set Cron strings for common settings
-            switch (taskSchedule.Frequency)
-            {
-                case Enums.Frequency.Daily:
-                    return string.Format("0 {0} * * 0-6", taskSchedule.Time.Hour.ToString());
-                case Enums.Frequency.Weekly:
-                    var ds = taskSchedule.DayOfWeek.Select(s => s.ToString().ToUpper().Substring(0, 3));
-                    return string.Format("0 {0} * * {1}", taskSchedule.Time.Hour.ToString(), string.Join(',', ds));
-                case Enums.Frequency.Monthly:
-                    return string.Format("0 {0} {1} * *", taskSchedule.Time.Hour.ToString(), taskSchedule.DayOfMonth);
-                default:
-                    return "";
-            }
-        }
-
         /// <summary>
         /// Logs out the users
         /// </summary>

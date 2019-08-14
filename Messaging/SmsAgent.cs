@@ -17,7 +17,7 @@ namespace HeyDo.Messaging
         /// Sends an SMS via twilio to a given number
         /// </summary>
         /// <param name="messageData">Should only be sending to number and subject + text from email</param>
-        public static void TwiSend(MessageData messageData)
+        public static string TwiSend(MessageData messageData)
         {
             var ownPhone = AppSettings.AppSetting["SMSNumber"]; 
             var accountSid = AppSettings.AppSetting["SMSAccountSid"];
@@ -30,6 +30,8 @@ namespace HeyDo.Messaging
                 from: new Twilio.Types.PhoneNumber(ownPhone),
                 to: new Twilio.Types.PhoneNumber("+1"+messageData.to.First().email)
             );
+
+            return message.Sid;
 
         }
     }
