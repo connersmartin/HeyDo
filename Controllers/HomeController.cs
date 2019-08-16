@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Hangfire;
 using Cronos;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Localization.Internal;
 
 namespace HeyDo.Controllers
 {
@@ -438,14 +439,29 @@ namespace HeyDo.Controllers
         public async Task<IActionResult> EditSched(string id)
         {
             var dict = GetCookies();
-            var uts = GetOrSetCachedData(dict, Enums.DataType.TaskSchedule, id);
+           
+            var uts = await GetOrSetCachedData(dict, Enums.DataType.TaskSchedule, id);
+            //could do empty check, but this is editing one, so we know it exists
+            var taskSchedule = uts.FirstOrDefault().ToObject<TaskSchedule>();
 
-            ViewData["ContactPreference"] = ContactEnumToList();
-            ViewData["Frequency"] = FrequencyEnumToList();
-            ViewData["DayFrequency"] = DayFrequencyEnumToList();
-            ViewData["Days"] = GetDays();
-            ViewData["DayOfWeek"] = DayOfWeekToList();
-            return View(uts);
+            var ut = await GetUserTasks(dict, taskSchedule.UserTaskId);
+            var usrtask = ut.FirstOrDefault();
+            var userTaskSchedule = new UserTaskSchedule()
+            {
+                TaskSchedule = taskSchedule,
+                UserTaskList = new UserTaskList() {UserTask = usrtask}
+            };
+
+            string[] days = Enum.GetNames(typeof(DayOfWeek));
+
+
+            ViewData["ContactPreference"] = ContactEnumToList(usrtask.ContactMethod.ToString());
+            ViewData["Frequency"] = FrequencyEnumToList(taskSchedule.Frequency.ToString());
+            ViewData["DayFrequency"] = DayFrequencyEnumToList(taskSchedule.DayFrequency.ToString());
+            ViewData["Days"] = GetDays(taskSchedule.DayOfMonth.ToString());
+            ViewData["DayOfWeek"] = DayOfWeekToList(days);
+
+            return View(userTaskSchedule);
         }
 
         [HttpPost]
@@ -647,11 +663,16 @@ namespace HeyDo.Controllers
             
             return RedirectToAction("ViewHistory");
         }    
-
-        public async Task<List<Usertask>> GetUserTasks(Dictionary<string, string> dict, UserTaskList userTaskList =null)
+        /// <summary>
+        /// Gets
+        /// </summary>
+        /// <param name="dict"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<List<Usertask>> GetUserTasks(Dictionary<string, string> dict,  string id = null)
         {
 
-            var data = await GetOrSetCachedData(dict, Enums.DataType.UserTasks);
+            var data = await GetOrSetCachedData(dict, Enums.DataType.UserTasks,id);
             var users = await GetUsers(dict);
             var tasks = await GetTasks(dict);
 
@@ -663,24 +684,9 @@ namespace HeyDo.Controllers
                     return taskList;
                 }
 
-                if (userTaskList != null)
+                foreach (var task in data)
                 {
-                    foreach (var task in data)
-                    {
-                        if (task["UserIdAssigned"].ToString() == userTaskList.UserTask.UserIdAssigned ||
-                            task["TaskId"].ToString() == userTaskList.UserTask.TaskId)
-                        {
-                            taskList.Add(task.ToObject<Usertask>());
-                        }
-
-                    }
-                }
-                else
-                {
-                    foreach (var task in data)
-                    {
-                        taskList.Add(task.ToObject<Usertask>());
-                    }
+                    taskList.Add(task.ToObject<Usertask>());
                 }
 
                 foreach (var t in taskList)
@@ -721,7 +727,7 @@ namespace HeyDo.Controllers
             var authed = auth["uid"] == await AuthController.Google(auth["token"]);
             if (!authed)
             {
-                RedirectToAction("Logout");
+                Logout();
             }
             var data = new List<JObject>();
             var uData = new List<JObject>();
@@ -793,14 +799,14 @@ namespace HeyDo.Controllers
             var msg = new MessageData()
             {
                 MessageId = Guid.NewGuid().ToString(),
-                tags = new string[] { taskObj.Title },
+                tags = new [] { taskObj.Title },
                 sender = adminContact,
-                to = new SimpleUser[] { new SimpleUser() { name = userObj.name, email = userTask.ContactMethod==Enums.ContactType.Email ? userObj.email : userObj.Phone} },
+                to = new [] { new SimpleUser() { name = userObj.name, email = userTask.ContactMethod==Enums.ContactType.Email ? userObj.email : userObj.Phone} },
                 htmlContent = taskObj.TaskDetails,
                 textContent = taskObj.TaskDetails,
                 subject = taskObj.Title,
                 replyTo = adminContact,
-                SendTime = taskSchedule == null ? userTask.SendTime : taskSchedule.Time
+                SendTime = taskSchedule?.Time ?? userTask.SendTime
             };
             if (taskSchedule == null)
             {
@@ -814,7 +820,6 @@ namespace HeyDo.Controllers
                 {
                     var future = BackgroundJob.Schedule(() => mc.SendMessage(msg, userTask.ContactMethod), msg.SendTime);
                 }
-
             }
             else
             {
@@ -861,87 +866,101 @@ namespace HeyDo.Controllers
             return times;
         }
 
-        public List<SelectListItem> GetDays()
+        public List<SelectListItem> GetDays(string match = null)
         {
             var times = new List<SelectListItem>();
             times.Add(new SelectListItem("n/a", "n/a"));
             for (int i = 1; i < 32; i++)
             {
-                times.Add(new SelectListItem(
-                    i.ToString(),
-                    i.ToString()
-                ));
+                var m = i.ToString() == match;
+                    times.Add(new SelectListItem(
+                        i.ToString(),
+                        i.ToString(), m
+                    ));
+                
             }
 
             return times;
         }
-        public List<SelectListItem> TaskIdToSelectList(List<TaskItem> tasks)
+        public List<SelectListItem> TaskIdToSelectList(List<TaskItem> tasks, string match = null)
         {
             var taskList = new List<SelectListItem>();
             taskList.Add(new SelectListItem("Please select a Task", ""));
 
             foreach (var t in tasks)    
             {
-                taskList.Add(new SelectListItem(t.Title, t.Id));
+                var m = t.Title == match;
+                taskList.Add(new SelectListItem(t.Title, t.Id,m));
             }
 
             return taskList;
         }
 
-        public List<SelectListItem> UserIdToSelectList(List<User> users)
+        public List<SelectListItem> UserIdToSelectList(List<User> users, string match = null)
         {
             var userIdList = new List<SelectListItem>();
             userIdList.Add(new SelectListItem("Please select a User", ""));
             foreach (var u in users )
             {
-                userIdList.Add(new SelectListItem(u.name,u.Id));
+                var m = u.name == match;
+                userIdList.Add(new SelectListItem(u.name,u.Id,m));
             }
 
             return userIdList;
         }
 
-        public List<SelectListItem> ContactEnumToList()
+        public List<SelectListItem> ContactEnumToList(string match=null)
         {
             var contactList = new List<SelectListItem>();
 
             foreach (var ct in Enum.GetValues(typeof(Enums.ContactType)))
             {
-                contactList.Add(new SelectListItem(ct.ToString(), ct.ToString()));
+                var m = ct.ToString() == match;
+                contactList.Add(new SelectListItem(ct.ToString(), ct.ToString(),m));
             }
 
             return contactList;
         }
 
-        public List<SelectListItem> FrequencyEnumToList()
+        public List<SelectListItem> FrequencyEnumToList(string match = null)
         {
             var frequencyList = new List<SelectListItem>();
 
             foreach (var ct in Enum.GetValues(typeof(Enums.Frequency)))
             {
-                frequencyList.Add(new SelectListItem(ct.ToString(), ct.ToString()));
+                var m = ct.ToString() == match;
+                frequencyList.Add(new SelectListItem(ct.ToString(), ct.ToString(),m));
             }
 
             return frequencyList;
         }
 
-        public List<SelectListItem> DayFrequencyEnumToList()
+        public List<SelectListItem> DayFrequencyEnumToList(string match = null)
         {
-            var dayFrequencyList = new List<SelectListItem>();
-            dayFrequencyList.Add(new SelectListItem("n/a", "n/a"));
+            var dayFrequencyList = new List<SelectListItem>(){new SelectListItem("n/a", "n/a")};
             foreach (var ct in Enum.GetValues(typeof(Enums.DayFrequency)))
             {
+                var m = ct.ToString() == match;
                 dayFrequencyList.Add(new SelectListItem(ct.ToString(), ct.ToString()));
             }
 
             return dayFrequencyList;
         }
 
-        public List<SelectListItem> DayOfWeekToList()
+        public List<SelectListItem> DayOfWeekToList(string[] match = null)
         {
+            bool m = false;
             var dowList = new List<SelectListItem>();
             foreach (var ct in Enum.GetValues(typeof(DayOfWeek)))
             {
-                dowList.Add(new SelectListItem(ct.ToString(), ct.ToString()));
+                if (match !=null)
+                {
+                    foreach (var d in match)
+                    {
+                        m = ct.ToString() == d;
+                    }
+                }
+                   dowList.Add(new SelectListItem(ct.ToString(), ct.ToString(),m));
             }
 
             return dowList;

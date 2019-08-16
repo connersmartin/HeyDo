@@ -17,13 +17,17 @@ namespace HeyDo.Data
         private static string baseUrl = AppSettings.AppSetting["FirebaseBaseUrl"];
         
         //TODO clean up and test
-        public static async Task<JObject> ApiGoogle(string method, string json, string sub, Dictionary<string,string> auth)
+        public static async Task<JObject> ApiGoogle(string method, string json, string sub,
+            Dictionary<string, string> auth, bool hangfire = false)
         {
-            var authCheck = await AuthController.Google(auth["token"]);
-            //Make sure user is authorized
-            if (authCheck == auth["uid"])
+            var token = hangfire ? AppSettings.AppSetting["HangFireAccess"] : auth["token"];
+
+            var authCheck = await AuthController.Google(token);
+            //Make sure user is authorized or system user
+            if (authCheck == auth["uid"] || hangfire)
             {
-                var url = baseUrl + sub + ".json?auth="+auth["token"];
+                
+                var url = baseUrl + sub + ".json?auth=" + token;
                 var res = new HttpResponseMessage();
                 switch (method)
                 {
@@ -41,29 +45,29 @@ namespace HeyDo.Data
                     case "DELETE":
                         res = await _client.DeleteAsync(url);
                         break;
-                    default:
-                            break;
                 }
 
                 if (res.StatusCode != System.Net.HttpStatusCode.OK)
                 {
-                    return new JObject() {
-                        { "Error", res.ReasonPhrase }
+                    return new JObject()
+                    {
+                        {"Error", res.ReasonPhrase}
                     };
                 }
-                else
-                {
-                    var interim = await res.Content.ReadAsStringAsync();
 
-                    return interim == null || interim == "null" ? new JObject() : JsonConvert.DeserializeObject<JObject>(interim);
-                }
+                var interim = await res.Content.ReadAsStringAsync();
+
+                return interim == null || interim == "null"
+                    ? new JObject()
+                    : JsonConvert.DeserializeObject<JObject>(interim);
+
             }
-            else
+
+            return new JObject()
             {
-                return new JObject() {
-                    {"Error",authCheck }
-                };
-            }
+                {"Error", authCheck}
+            };
+
         }
     }
 }

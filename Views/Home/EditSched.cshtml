@@ -12,10 +12,13 @@
     <div class="col-md-4">
         <form asp-action="EditSched">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input asp-for="TaskSchedule.Id" hidden />
+            <input asp-for="TaskSchedule.UserTaskId" hidden />
+            <input asp-for="UserTaskList.UserTask.Id" hidden />
             <div class="form-group">
                 <label asp-for="UserTaskList.UserTask.ContactMethod" class="control-label"></label>
                 <br /><select asp-for="UserTaskList.UserTask.ContactMethod" class="form-control" asp-items=ViewBag.ContactPreference></select>
-            </div>  
+            </div>
             <div class="form-group">
                 <label asp-for="TaskSchedule.DayFrequency" class="control-label"></label>
                 <br /><select asp-for="TaskSchedule.DayFrequency" class="form-control" asp-items=ViewBag.DayFrequency></select>
@@ -33,9 +36,9 @@
                 <br /><select asp-for="TaskSchedule.Frequency" class="form-control" asp-items=ViewBag.Frequency></select>
             </div>
             <div class="form-group" id="time">
-                <label asp-for="UserTaskList.UserTask.SendTime" class="control-label"></label>
-                <input asp-for="UserTaskList.UserTask.SendTime" type="time" class="form-control" />
-                <span asp-validation-for="UserTaskList.UserTask.SendTime" class="text-danger"></span>
+                <label asp-for="TaskSchedule.Time" class="control-label"></label>
+                <input asp-for="TaskSchedule.Time" type="time" class="form-control" />
+                <span asp-validation-for="TaskSchedule.Time" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="TaskSchedule.StartDate" class="control-label"></label>
