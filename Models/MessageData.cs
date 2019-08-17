@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace HeyDo.Models
 {
+    /// <summary>
+    /// Basic message data needed to send the various notifications
+    /// </summary>
     public class MessageData
     {
         public string MessageId { get; set; }

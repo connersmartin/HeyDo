@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace HeyDo.Models
 {
+    /// <summary>
+    /// This is a task that can be assigned
+    /// </summary>
     public class TaskItem
     {
         public string Id { get; set; }

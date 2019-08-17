@@ -19,22 +19,18 @@ namespace HeyDo.Controllers
         /// <param name="auth">Google auth token</param>
         /// <param name="dataType">User, Task, Usertask</param>
         /// <returns></returns>
-        public static async Task<string> AddData(Dictionary<string, string> auth, Enums.DataType dataType, string jData, bool update = false)
+        internal static async Task<string> AddData(Dictionary<string, string> auth, Enums.DataType dataType, string jData, bool update = false, bool admin = false)
         {
             var obData = JsonConvert.DeserializeObject<JObject>(jData);
-
-            var url = dataType + "/" + auth["uid"] + "/" + obData["Id"];
-
-            //var url = dataType + "/" + auth["uid"] + "/" + data.Id;
+            var folder = admin ? "" : "/" + auth["uid"];
+            var url = dataType + folder + "/" + obData["Id"];
 
             var action = update ? "PATCH" : "PUT";
 
             var res = await DataAccess.ApiGoogle(action, jData, url, auth);
 
-            return res.ToString();
-            
+            return res.ToString();            
         }
-
         /// <summary>
         /// Returns lists of data
         /// </summary>
@@ -42,12 +38,12 @@ namespace HeyDo.Controllers
         /// <param name="auth">Google atuh token</param>
         /// <param name="dataType">User, Task, Usertask</param>
         /// <returns></returns>
-        public static async Task<List<JObject>> GetData(Dictionary<string, string> auth, Enums.DataType dataType,
+        internal static async Task<List<JObject>> GetData(Dictionary<string, string> auth, Enums.DataType dataType, bool admin = false,
             string id = null)
         {
             var list = new List<JObject>();
-
-            var url = dataType + "/" + auth["uid"] + id;
+            var folder = admin ? "" : "/" + auth["uid"];
+            var url = dataType + folder + id;
 
             var data = await DataAccess.ApiGoogle("GET", "", url, auth);
 
@@ -82,12 +78,14 @@ namespace HeyDo.Controllers
         /// <param name="auth"></param>
         /// <param name="dataType"></param>
         /// <returns>something maybe</returns>
-        public static async Task<string> DeleteData(Dictionary<string, string> auth, Enums.DataType dataType, string id)
+        internal static async Task<string> DeleteData(Dictionary<string, string> auth, Enums.DataType dataType, string id, bool admin = false)
         {
-            var url = dataType + "/" + auth["uid"] + "/"+id;
+            var folder = admin ? "" : "/" + auth["uid"];
+            var url = dataType + folder + "/"+id;
             var data = await DataAccess.ApiGoogle("DELETE", "", url, auth);
 
             return data.ToString();
         }
+
     }
 }

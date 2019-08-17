@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace HeyDo.Models
 {
+    /// <summary>
+    /// Holds the authorization data passed from the front end
+    /// </summary>
     public class Auth
     {
         public string Uid { get; set; }

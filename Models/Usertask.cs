@@ -5,7 +5,13 @@ using System.Threading.Tasks;
 
 namespace HeyDo.Models
 {
-    
+    /// <summary>
+    /// This is what links users and tasks together
+    /// This user task, once assigned can immediately send a notification
+    /// or have one sent at a future date
+    /// or have a recurring notification (taskschedule)
+    /// or be part of a rotating notification (grouptaskschedule)
+    /// </summary>
     public class Usertask
     {
         public string Id { get; set; }
@@ -21,5 +27,8 @@ namespace HeyDo.Models
         public DateTime CompletedDateTime { get; set; }
         public bool SendNow { get; set; }
         public string CancelToken { get; set; }
+        public string LastTaskId { get; set; }
+        public string GroupTaskId { get; set; }
+        public string GroupTaskRun { get; set; }
     }
 }

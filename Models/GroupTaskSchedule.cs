@@ -5,10 +5,15 @@ using System.Threading.Tasks;
 
 namespace HeyDo.Models
 {
-    public class GroupTaskSchedule
+    /// <summary>
+    /// This schedule is used for group schedules
+    /// Where a group of users are assigned a group of tasks
+    /// And those are run on a particular schedule
+    /// </summary>
+    public class GroupTaskSchedule:Schedule
     {
-        public string Id { get; set; }
         public string[] Users { get; set; }
         public string[] Tasks { get; set; }
+        public string GroupTaskRun { get; set; }
     }
 }

@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace HeyDo.Models
 {
+    /// <summary>
+    /// These are values used throughout the site that may have other options added
+    /// </summary>
     public class Enums
     {
         public enum ContactType
@@ -19,7 +22,9 @@ namespace HeyDo.Models
             Users,
             Tasks,
             TaskSchedule,
-            UserTasks
+            UserTasks,
+            GroupSchedule,
+            UserGroupSchedule
         }
 
         public enum UpdateType

@@ -49,12 +49,7 @@ namespace HeyDo.Controllers
                 
             }
         }
-        public void OnScheduledEvent()
-        {
-            //This could be used to have scheduled events get scheduled one by one
-            //need to figure out how this could/should be done when thinking about authentication.
-            //master user?
-        }
+
     }
 
 }

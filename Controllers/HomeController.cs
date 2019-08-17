@@ -430,7 +430,7 @@ namespace HeyDo.Controllers
             jData = JsonConvert.SerializeObject(ts);
             //add the task schedule
             await UpdateAndClearCache(dict, Enums.DataType.TaskSchedule, Enums.UpdateType.Add, jData);
-            var t = SendNotification(ut, dict, ts);
+            var t = ScheduleNotification(ut, dict, ts);
 
             return RedirectToAction("ViewSched");
         }
@@ -527,9 +527,11 @@ namespace HeyDo.Controllers
             var dict = GetCookies();
             groupTaskSchedule.Id = Guid.NewGuid().ToString();
             //get users
-            var userList = GetUsers(dict);
+            var userList = await GetUsers(dict);
             //get tasks
-            var taskList = GetTasks(dict);
+            var taskList = await GetTasks(dict);
+            //create the grouptaskschedule
+            //create the first usertask
             //magic
             //would need to figure out how to randomly schedule a task
             //something like OnScheduledTask but NextRandomTask
@@ -630,7 +632,7 @@ namespace HeyDo.Controllers
             await UpdateAndClearCache(dict, Enums.DataType.UserTasks,Enums.UpdateType.Add, jData);
 
             //Send out notification
-            await SendNotification(userTaskList.UserTask, dict);
+            await ScheduleNotification(userTaskList.UserTask, dict);
 
             return RedirectToAction("ViewHistory");
         }
@@ -659,7 +661,7 @@ namespace HeyDo.Controllers
             //send the notification now, but not updating the task
             userTaskList.UserTask.SendNow = true;
 
-            await SendNotification(userTaskList.UserTask, dict);
+            await ScheduleNotification(userTaskList.UserTask, dict);
             
             return RedirectToAction("ViewHistory");
         }    
@@ -776,12 +778,12 @@ namespace HeyDo.Controllers
         }
 
         /// <summary>
-        /// Sends the notification
+        /// Schedules the notification to be sent
         /// </summary>
         /// <param name="userTaskList"></param>
         /// <param name="dict"></param>
         /// <returns>nothing</returns>
-        public async Task SendNotification(Usertask userTask, Dictionary<string,string> dict, TaskSchedule taskSchedule = null)
+        public async Task ScheduleNotification(Usertask userTask, Dictionary<string,string> dict, TaskSchedule taskSchedule = null)
         {
             //get admin info
             var adminUserObj = await GetAdmin(dict);

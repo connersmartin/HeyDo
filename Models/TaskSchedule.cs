@@ -6,18 +6,13 @@ using HeyDo.Models;
 
 namespace HeyDo.Models
 {
-    public class TaskSchedule
+    /// <summary>
+    /// This schedule type is for a specific usertaskid
+    /// So a given task that is assigned to a user can be given a schedule
+    /// </summary>
+    public class TaskSchedule:Schedule
     {
-        public string Id { get; set; }
         public string UserTaskId { get; set; }
-        public DateTime Time { get; set; }
-        public DayOfWeek[] DayOfWeek { get; set; }
-        public int DayOfMonth { get; set; }
-        public Enums.Frequency Frequency { get; set; }
-        public Enums.DayFrequency DayFrequency { get; set; }
-        public bool Active { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
-        public string CancelToken { get; set; }
+        
     }
 }

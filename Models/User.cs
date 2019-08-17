@@ -5,7 +5,10 @@ using System.Threading.Tasks;
 
 namespace HeyDo.Models
 {
-
+    /// <summary>
+    /// A user will be assigned tasks using their preferred contact preference unless overridden
+    /// Group tasks should respect their ContactTime unless overridden
+    /// </summary>
     public class User:SimpleUser
     {
         public string Id { get; set; }
