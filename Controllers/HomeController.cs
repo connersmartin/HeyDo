@@ -531,10 +531,16 @@ namespace HeyDo.Controllers
             //get tasks
             var taskList = await GetTasks(dict);
             //create the grouptaskschedule
-            //create the first usertask
+            var jData = JsonConvert.SerializeObject(groupTaskSchedule);
+            await UpdateAndClearCache(dict, Enums.DataType.GroupSchedule, Enums.UpdateType.Add,jData);
+            //create the usergroupschedule
+            var kData = JsonConvert.SerializeObject(new { Id = groupTaskSchedule.Id, u = dict["uid"] });
+            //use dataaccess instead of controller
+            await DataAccess.ApiGoogle("PUT",kData,"/UserGroupSchedule/"+ groupTaskSchedule.Id,dict,true);
             //magic
             //would need to figure out how to randomly schedule a task
             //something like OnScheduledTask but NextRandomTask
+            await MessageScheduler.OnScheduledEvent(groupTaskSchedule.Id);
             return View();
         }
         public async Task<List<TaskSchedule>> GetTaskSched(Dictionary<string, string> auth, string uid = null)

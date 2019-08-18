@@ -22,12 +22,11 @@ namespace HeyDo.Controllers
         internal static async Task<string> AddData(Dictionary<string, string> auth, Enums.DataType dataType, string jData, bool update = false, bool admin = false)
         {
             var obData = JsonConvert.DeserializeObject<JObject>(jData);
-            var folder = admin ? "" : "/" + auth["uid"];
-            var url = dataType + folder + "/" + obData["Id"];
+            var url = dataType + "/" + auth["uid"] + "/" + obData["Id"];
 
             var action = update ? "PATCH" : "PUT";
 
-            var res = await DataAccess.ApiGoogle(action, jData, url, auth);
+            var res = await DataAccess.ApiGoogle(action, jData, url, auth,admin);
 
             return res.ToString();            
         }
@@ -42,10 +41,9 @@ namespace HeyDo.Controllers
             string id = null)
         {
             var list = new List<JObject>();
-            var folder = admin ? "" : "/" + auth["uid"];
-            var url = dataType + folder + id;
+            var url = dataType + "/" + auth["uid"] + id;
 
-            var data = await DataAccess.ApiGoogle("GET", "", url, auth);
+            var data = await DataAccess.ApiGoogle("GET", "", url, auth,admin);
 
             if (data != null)
             {
@@ -80,9 +78,8 @@ namespace HeyDo.Controllers
         /// <returns>something maybe</returns>
         internal static async Task<string> DeleteData(Dictionary<string, string> auth, Enums.DataType dataType, string id, bool admin = false)
         {
-            var folder = admin ? "" : "/" + auth["uid"];
-            var url = dataType + folder + "/"+id;
-            var data = await DataAccess.ApiGoogle("DELETE", "", url, auth);
+            var url = dataType + "/" + auth["uid"] + "/"+id;
+            var data = await DataAccess.ApiGoogle("DELETE", "", url, auth,admin);
 
             return data.ToString();
         }

@@ -18,13 +18,13 @@ namespace HeyDo.Data
         
         //TODO clean up and test
         public static async Task<JObject> ApiGoogle(string method, string json, string sub,
-            Dictionary<string, string> auth, bool hangfire = false)
+            Dictionary<string, string> auth, bool admin = false)
         {
-            var token = hangfire ? AppSettings.AppSetting["HangFireAccess"] : auth["token"];
+            var token = admin ? AppSettings.AppSetting["HangFireAccess"] : auth["token"];
 
             var authCheck = await AuthController.Google(token);
             //Make sure user is authorized or system user
-            if (authCheck == auth["uid"] || hangfire)
+            if (authCheck == auth["uid"] || admin)
             {
                 
                 var url = baseUrl + sub + ".json?auth=" + token;
