@@ -526,6 +526,7 @@ namespace HeyDo.Controllers
         {
             var dict = GetCookies();
             groupTaskSchedule.Id = Guid.NewGuid().ToString();
+            groupTaskSchedule.GroupTaskRun = 1;
             //get users
             var userList = await GetUsers(dict);
             //get tasks

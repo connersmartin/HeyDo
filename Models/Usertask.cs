@@ -29,6 +29,6 @@ namespace HeyDo.Models
         public string CancelToken { get; set; }
         public string LastTaskId { get; set; }
         public string GroupTaskId { get; set; }
-        public string GroupTaskRun { get; set; }
+        public int GroupTaskRun { get; set; }
     }
 }

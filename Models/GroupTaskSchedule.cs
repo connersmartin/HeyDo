@@ -14,6 +14,6 @@ namespace HeyDo.Models
     {
         public string[] Users { get; set; }
         public string[] Tasks { get; set; }
-        public string GroupTaskRun { get; set; }
+        public int GroupTaskRun { get; set; }
     }
 }
