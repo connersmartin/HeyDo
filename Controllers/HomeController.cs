@@ -410,7 +410,6 @@ namespace HeyDo.Controllers
         public async Task<IActionResult> SchedTask(UserTaskSchedule userTaskSchedule)
         {
             var dict = GetCookies();
-            //TODO Figure out hat needs to get changed. It looks like all the important data is getting passed!
             var ut = userTaskSchedule.UserTaskList.UserTask;
             var ts = userTaskSchedule.TaskSchedule;
 

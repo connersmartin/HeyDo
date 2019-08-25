@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using HeyDo.Models;
 using HeyDo.Data;
 using HeyDo.Controllers;
+using Newtonsoft.Json;
 using Hangfire;
 
 namespace HeyDo.Messaging
@@ -64,15 +65,20 @@ namespace HeyDo.Messaging
             //add the contact preference to the usertasks
             foreach (var gut in groupUsertask)
             {
-                foreach (var u in groupUserList)
-                {
-                    if (gut.UserIdAssigned==u.Id)
-                    {
-                        gut.ContactMethod = u.ContactPreference;
-                    }
-                }
-                //TODO
-                //create the userTask
+                gut.ContactMethod = groupUserList.Find(u => u.Id == gut.UserIdAssigned).ContactPreference;
+
+                //remove if linq works properly
+                //foreach (var u in groupUserList)
+                //{
+                //   if (gut.UserIdAssigned==u.Id)
+                //  {
+                //     gut.ContactMethod = u.ContactPreference;
+                //}
+                //}
+
+                //create the userTask in db
+                var utData = JsonConvert.SerializeObject(gut);
+                await DataController.AddData(dict, Enums.DataType.UserTasks, utData, false, true);
             }
             //for debugging purposes
             foreach (var g in groupUsertask)
@@ -106,11 +112,13 @@ namespace HeyDo.Messaging
                 var taskObj = groupTaskList.Find(t => t.Id == gu.TaskId);
 
 
-                ScheduleMessage(adminContact, userObj, taskObj, gu, null, offsetOffset + gu.GroupTaskRun);
+                ScheduleMessage(adminContact, userObj, taskObj, gu, null, gu.GroupTaskRun-offsetOffset);
                 if (gu.LastScheduled)
                 {
-                    //TODO
-                    //update grouptaskrun
+                    //update grouptask run 
+                    groupSchedule.GroupTaskRun = gu.GroupTaskRun;
+                    var jsData = JsonConvert.SerializeObject(groupSchedule);
+                    await DataController.AddData(dict, Enums.DataType.GroupSchedule,jsData,true,true);
                 }
             }
 
@@ -256,7 +264,6 @@ namespace HeyDo.Messaging
         /// <param name="cType">Contact type, Email or Phone</param>
         public static void SendMessage(MessageData msg, Enums.ContactType cType, Usertask userTask)
         {
-            //TODO figure out how to run OnScheduledEvent to schedule the next notification instead of CRON strings
             //don't need to send a message while testing
             if (true)
             {
