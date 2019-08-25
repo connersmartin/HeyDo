@@ -526,7 +526,7 @@ namespace HeyDo.Controllers
         {
             var dict = GetCookies();
             groupTaskSchedule.Id = Guid.NewGuid().ToString();
-            groupTaskSchedule.GroupTaskRun = 1;
+            groupTaskSchedule.GroupTaskRun = 0;
             //get users
             var userList = await GetUsers(dict);
             //get tasks
@@ -783,9 +783,9 @@ namespace HeyDo.Controllers
                     break;
             }
         }
-
+        //TODO put this in the message scheduler
         /// <summary>
-        /// Schedules the notification to be sent
+        /// Schedules the notification to be sent 
         /// </summary>
         /// <param name="userTaskList"></param>
         /// <param name="dict"></param>
@@ -804,57 +804,10 @@ namespace HeyDo.Controllers
             var taskObj = task.First().ToObject<TaskItem>();
 
             //Make message
-            //TODO create a template for htmlcontent
-            var msg = new MessageData()
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                tags = new [] { taskObj.Title },
-                sender = adminContact,
-                to = new [] { new SimpleUser() { name = userObj.name, email = userTask.ContactMethod==Enums.ContactType.Email ? userObj.email : userObj.Phone} },
-                htmlContent = taskObj.TaskDetails,
-                textContent = taskObj.TaskDetails,
-                subject = taskObj.Title,
-                replyTo = adminContact,
-                SendTime = taskSchedule?.Time ?? userTask.SendTime
-            };
-            if (taskSchedule == null)
-            {
-                //Immediately send message
-                if (userTask.SendNow)
-                {
-                    var single = BackgroundJob.Enqueue(() => mc.SendMessage(msg, userTask.ContactMethod));
-                }
-                //wait until you say so
-                else
-                {
-                    var future = BackgroundJob.Schedule(() => mc.SendMessage(msg, userTask.ContactMethod), msg.SendTime);
-                }
-            }
-            else
-            {
-                var freq = GetCronString(taskSchedule);
-                //TODO finish this, figure out logic
-                RecurringJob.AddOrUpdate(taskSchedule.Id, () => mc.SendMessage(msg, userTask.ContactMethod), freq );
-            }
+            MessageScheduler.ScheduleMessage(adminContact, userObj, taskObj, userTask, taskSchedule);
+            
+        }
 
-            //use encryption?
-        }
-        public string GetCronString(TaskSchedule taskSchedule)
-        {
-            //Set Cron strings for common settings
-            switch (taskSchedule.Frequency)
-            {
-                case Enums.Frequency.Daily:
-                    return string.Format("0 {0} * * 0-6", taskSchedule.Time.Hour.ToString());
-                case Enums.Frequency.Weekly:
-                    var ds = taskSchedule.DayOfWeek.Select(s => s.ToString().ToUpper().Substring(0, 3));
-                    return string.Format("0 {0} * * {1}", taskSchedule.Time.Hour.ToString(), string.Join(',', ds));
-                case Enums.Frequency.Monthly:
-                    return string.Format("0 {0} {1} * *", taskSchedule.Time.Hour.ToString(), taskSchedule.DayOfMonth);
-                default:
-                    return "";
-            }
-        }
 
         #region SelectListFunctions
         /// <summary>

@@ -30,5 +30,6 @@ namespace HeyDo.Models
         public string LastTaskId { get; set; }
         public string GroupTaskId { get; set; }
         public int GroupTaskRun { get; set; }
+        public bool LastScheduled { get; set; }
     }
 }

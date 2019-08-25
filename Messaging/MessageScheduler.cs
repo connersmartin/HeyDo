@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using HeyDo.Models;
 using HeyDo.Data;
 using HeyDo.Controllers;
+using Hangfire;
 
 namespace HeyDo.Messaging
 {
@@ -34,6 +35,11 @@ namespace HeyDo.Messaging
             var gts = await DataController.GetData(dict, Enums.DataType.GroupSchedule, true, "/"+id);
             var groupSchedule = gts.FirstOrDefault().ToObject<GroupTaskSchedule>();
 
+            var admin = await DataController.GetData(dict,Enums.DataType.AdminUser);
+            var adminUserObj = admin.FirstOrDefault().ToObject<AdminUser>();
+
+            var adminContact = new SimpleUser() { name = adminUserObj.name, email = adminUserObj.ReplyToEmail };
+
             //get tasks and users associated with this thing
             var users = await DataController.GetData(dict, Enums.DataType.Users, true);
             var tasks = await DataController.GetData(dict, Enums.DataType.Tasks, true);
@@ -52,7 +58,7 @@ namespace HeyDo.Messaging
             //get usertasks associated with the run
             var userTasks = await DataController.GetData(dict, Enums.DataType.UserTasks, true);
 
-            //create new usertasks
+            //create new list of usertasks
             var groupUsertask = CreateGroupUserTaskLists(groupSchedule);
 
             //add the contact preference to the usertasks
@@ -65,6 +71,8 @@ namespace HeyDo.Messaging
                         gut.ContactMethod = u.ContactPreference;
                     }
                 }
+                //TODO
+                //create the userTask
             }
             //for debugging purposes
             foreach (var g in groupUsertask)
@@ -88,10 +96,25 @@ namespace HeyDo.Messaging
             //2.have a random assortment of the users assign the task or vice versa
             //3.on subsequent runs, remove those users/tasks from the available list
 
-           
+
 
             //schedule messages
+            var offsetOffset = groupUsertask.Min(g => g.GroupTaskRun);
+            foreach (var gu in groupUsertask)
+            {
+                var userObj = groupUserList.Find(u => u.Id == gu.UserIdAssigned);
+                var taskObj = groupTaskList.Find(t => t.Id == gu.TaskId);
 
+
+                ScheduleMessage(adminContact, userObj, taskObj, gu, null, offsetOffset + gu.GroupTaskRun);
+                if (gu.LastScheduled)
+                {
+                    //TODO
+                    //update grouptaskrun
+                }
+            }
+
+            //if lastscheduled
             //populate next messages
         }
 
@@ -160,15 +183,110 @@ namespace HeyDo.Messaging
                         AssignedDateTime = DateTime.Now,
                         SendNow = false,
                         GroupTaskId = groupTaskSchedule.Id,
-                        GroupTaskRun = groupTaskSchedule.GroupTaskRun + i
+                        GroupTaskRun = groupTaskSchedule.GroupTaskRun + i,
+                        LastScheduled = lng.Count == 0
                     });
                 }
                 taskDict.Clear();
-            }
-
-            
+            }           
 
             return groupUserTasks;
+        }
+
+        public static void ScheduleMessage(SimpleUser adminContact, User userObj, TaskItem taskObj, Usertask userTask, TaskSchedule taskSchedule, int offset=0)
+        {
+            //TODO create a template for htmlcontent
+
+            var msg = new MessageData()
+            {
+                MessageId = Guid.NewGuid().ToString(),
+                tags = new[] { taskObj.Title },
+                sender = adminContact,
+                to = new[] { new SimpleUser() { name = userObj.name, email = userTask.ContactMethod == Enums.ContactType.Email ? userObj.email : userObj.Phone } },
+                htmlContent = taskObj.TaskDetails,
+                textContent = taskObj.TaskDetails,
+                subject = taskObj.Title,
+                replyTo = adminContact,
+                SendTime = taskSchedule?.Time ?? userTask.SendTime
+            };
+            if (taskSchedule == null)
+            {
+                //Immediately send message
+                if (userTask.SendNow)
+                {
+                    var single = BackgroundJob.Enqueue(() => SendMessage(msg, userTask.ContactMethod,userTask));
+                }
+                //wait until you say so
+                else 
+                {
+                    var sendTime = new DateTimeOffset(msg.SendTime).AddDays(offset);
+                    var future = BackgroundJob.Schedule(() => SendMessage(msg, userTask.ContactMethod,userTask), sendTime);
+                }
+            }
+            else
+            {
+                var freq = GetCronString(taskSchedule);
+                //TODO finish this, figure out logic
+                RecurringJob.AddOrUpdate(taskSchedule.Id, () => SendMessage(msg, userTask.ContactMethod,userTask), freq);
+            }
+
+            //use encryption?
+        }
+
+        public static string GetCronString(TaskSchedule taskSchedule)
+        {
+            //Set Cron strings for common settings
+            switch (taskSchedule.Frequency)
+            {
+                case Enums.Frequency.Daily:
+                    return string.Format("0 {0} * * 0-6", taskSchedule.Time.Hour.ToString());
+                case Enums.Frequency.Weekly:
+                    var ds = taskSchedule.DayOfWeek.Select(s => s.ToString().ToUpper().Substring(0, 3));
+                    return string.Format("0 {0} * * {1}", taskSchedule.Time.Hour.ToString(), string.Join(',', ds));
+                case Enums.Frequency.Monthly:
+                    return string.Format("0 {0} {1} * *", taskSchedule.Time.Hour.ToString(), taskSchedule.DayOfMonth);
+                default:
+                    return "";
+            }
+        }
+        /// <summary>
+        /// Sends a message to a user
+        /// </summary>
+        /// <param name="msg">Message information</param>
+        /// <param name="cType">Contact type, Email or Phone</param>
+        public static void SendMessage(MessageData msg, Enums.ContactType cType, Usertask userTask)
+        {
+            //TODO figure out how to run OnScheduledEvent to schedule the next notification instead of CRON strings
+            //don't need to send a message while testing
+            if (true)
+            {
+                Console.WriteLine("Done");
+            }
+            else
+            {
+                switch (cType)
+                {
+                    case Enums.ContactType.Email:
+                        //Test data
+                        //var success = EmailAgent.SendMail(TestData.TestSms);
+                        //Real life
+                        var emailSuccess = EmailAgent.SendMail(msg);
+                        break;
+                    case Enums.ContactType.Phone:
+                        //Test data
+                        //SmsAgent.TwiSend(TestData.TestSms);
+                        //Real life
+                        var smsSuccess = SmsAgent.TwiSend(msg);
+                        break;
+                    default:
+                        break;
+                }
+
+            }
+            if (userTask.LastScheduled)
+            {
+               OnScheduledEvent(userTask.GroupTaskId);
+            }
         }
 
 
