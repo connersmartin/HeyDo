@@ -66,7 +66,10 @@ namespace HeyDo.Messaging
             foreach (var gut in groupUsertask)
             {
                 gut.ContactMethod = groupUserList.Find(u => u.Id == gut.UserIdAssigned).ContactPreference;
-
+                if (!groupSchedule.TimeOverride)
+                {
+                    gut.SendTime = groupUserList.Find(u => u.Id == gut.UserIdAssigned).ContactTime;
+                }
                 //remove if linq works properly
                 //foreach (var u in groupUserList)
                 //{
