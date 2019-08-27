@@ -541,8 +541,19 @@ namespace HeyDo.Controllers
             //would need to figure out how to randomly schedule a task
             //something like OnScheduledTask but NextRandomTask
             await MessageScheduler.OnScheduledEvent(groupTaskSchedule.Id);
-            return View();
+            return RedirectToAction("ViewRandTask");
         }
+
+        [HttpGet]
+        public async Task<IActionResult> ViewRandTask()
+        {
+            var dict = GetCookies();
+            var gts = await GetOrSetCachedData(dict, Enums.DataType.GroupSchedule);
+            var groupTaskSchedules = gts.Select(g => g.ToObject<GroupTaskSchedule>()).ToList();
+            
+            return View(groupTaskSchedules);
+        }
+
         public async Task<List<TaskSchedule>> GetTaskSched(Dictionary<string, string> auth, string uid = null)
         {
             var data = await GetOrSetCachedData(auth, Enums.DataType.TaskSchedule, uid);
