@@ -204,7 +204,7 @@ namespace HeyDo.Messaging
             return groupUserTasks;
         }
 
-        public static void ScheduleMessage(SimpleUser adminContact, User userObj, TaskItem taskObj, Usertask userTask, TaskSchedule taskSchedule, int offset=0)
+        public static string ScheduleMessage(SimpleUser adminContact, User userObj, TaskItem taskObj, Usertask userTask, TaskSchedule taskSchedule, int offset=0)
         {
             //TODO create a template for htmlcontent
 
@@ -225,13 +225,13 @@ namespace HeyDo.Messaging
                 //Immediately send message
                 if (userTask.SendNow)
                 {
-                    var single = BackgroundJob.Enqueue(() => SendMessage(msg, userTask.ContactMethod,userTask));
+                    return BackgroundJob.Enqueue(() => SendMessage(msg, userTask.ContactMethod,userTask));
                 }
                 //wait until you say so
                 else 
                 {
                     var sendTime = new DateTimeOffset(msg.SendTime).AddDays(offset);
-                    var future = BackgroundJob.Schedule(() => SendMessage(msg, userTask.ContactMethod,userTask), sendTime);
+                    return BackgroundJob.Schedule(() => SendMessage(msg, userTask.ContactMethod,userTask), sendTime);
                 }
             }
             else
@@ -239,9 +239,8 @@ namespace HeyDo.Messaging
                 var freq = GetCronString(taskSchedule);
                 //TODO finish this, figure out logic
                 RecurringJob.AddOrUpdate(taskSchedule.Id, () => SendMessage(msg, userTask.ContactMethod,userTask), freq);
+                return taskSchedule.Id;
             }
-
-            //use encryption?
         }
 
         public static string GetCronString(TaskSchedule taskSchedule)
@@ -268,7 +267,7 @@ namespace HeyDo.Messaging
         public static void SendMessage(MessageData msg, Enums.ContactType cType, Usertask userTask)
         {
             //don't need to send a message while testing
-            if (true)
+            if (1==1)
             {
                 Console.WriteLine("Done");
             }

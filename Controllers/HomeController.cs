@@ -426,10 +426,13 @@ namespace HeyDo.Controllers
             ts.Id = Guid.NewGuid().ToString();
             ts.UserTaskId = ut.Id;
 
-            jData = JsonConvert.SerializeObject(ts);
+            var messageId = ScheduleNotification(ut, dict, ts);
+            //TODO update usertask message id
+            
             //add the task schedule
+            jData = JsonConvert.SerializeObject(ts);
             await UpdateAndClearCache(dict, Enums.DataType.TaskSchedule, Enums.UpdateType.Add, jData);
-            var t = ScheduleNotification(ut, dict, ts);
+
 
             return RedirectToAction("ViewSched");
         }
@@ -509,7 +512,7 @@ namespace HeyDo.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> RandTask()
+        public async Task<IActionResult> GroupScheduleTask()
         {
             var dict = GetCookies();
             var usr = await GetUsers(dict);
@@ -517,11 +520,11 @@ namespace HeyDo.Controllers
             var tsk = await GetTasks(dict);
             ViewData["Tasks"] = TaskIdToSelectList(tsk);
 
-            return View("RandTask");
+            return View("GroupScheduleTask");
         }
 
         [HttpPost]
-        public async Task<IActionResult> RandTask(GroupTaskSchedule groupTaskSchedule)
+        public async Task<IActionResult> GroupScheduleTask(GroupTaskSchedule groupTaskSchedule)
         {
             var dict = GetCookies();
             groupTaskSchedule.Id = Guid.NewGuid().ToString();
@@ -541,17 +544,25 @@ namespace HeyDo.Controllers
             //would need to figure out how to randomly schedule a task
             //something like OnScheduledTask but NextRandomTask
             await MessageScheduler.OnScheduledEvent(groupTaskSchedule.Id);
-            return RedirectToAction("ViewRandTask");
+            return RedirectToAction("ViewGroupScheduleTasks");
         }
 
         [HttpGet]
-        public async Task<IActionResult> ViewRandTask()
+        public async Task<IActionResult> ViewGroupScheduleTasks()
         {
             var dict = GetCookies();
             var gts = await GetOrSetCachedData(dict, Enums.DataType.GroupSchedule);
             var groupTaskSchedules = gts.Select(g => g.ToObject<GroupTaskSchedule>()).ToList();
             
             return View(groupTaskSchedules);
+        }
+
+        public async Task<IActionResult> DeleteGroupSchedule(string id)
+        {
+            var dict = GetCookies();
+            await UpdateAndClearCache(dict, Enums.DataType.GroupSchedule, Enums.UpdateType.Delete, id);
+
+            return RedirectToAction("ViewGroupScheduleTasks");
         }
 
         public async Task<List<TaskSchedule>> GetTaskSched(Dictionary<string, string> auth, string uid = null)
@@ -649,7 +660,8 @@ namespace HeyDo.Controllers
             await UpdateAndClearCache(dict, Enums.DataType.UserTasks,Enums.UpdateType.Add, jData);
 
             //Send out notification
-            await ScheduleNotification(userTaskList.UserTask, dict);
+            var messageId = await ScheduleNotification(userTaskList.UserTask, dict);
+            //TODO update usertask message id
 
             return RedirectToAction("ViewHistory");
         }
@@ -678,8 +690,9 @@ namespace HeyDo.Controllers
             //send the notification now, but not updating the task
             userTaskList.UserTask.SendNow = true;
 
-            await ScheduleNotification(userTaskList.UserTask, dict);
-            
+            var messageId = await ScheduleNotification(userTaskList.UserTask, dict);
+            //TODO update usertask message id
+
             return RedirectToAction("ViewHistory");
         }    
         /// <summary>
@@ -800,7 +813,7 @@ namespace HeyDo.Controllers
         /// <param name="userTaskList"></param>
         /// <param name="dict"></param>
         /// <returns>nothing</returns>
-        public async Task ScheduleNotification(Usertask userTask, Dictionary<string,string> dict, TaskSchedule taskSchedule = null)
+        public async Task<string> ScheduleNotification(Usertask userTask, Dictionary<string,string> dict, TaskSchedule taskSchedule = null)
         {
             //get admin info
             var adminUserObj = await GetAdmin(dict);
@@ -814,7 +827,7 @@ namespace HeyDo.Controllers
             var taskObj = task.First().ToObject<TaskItem>();
 
             //Make message
-            MessageScheduler.ScheduleMessage(adminContact, userObj, taskObj, userTask, taskSchedule);
+            return MessageScheduler.ScheduleMessage(adminContact, userObj, taskObj, userTask, taskSchedule);
             
         }
 

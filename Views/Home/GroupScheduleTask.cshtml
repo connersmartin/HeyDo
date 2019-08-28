@@ -1,13 +1,13 @@
 ﻿@model HeyDo.Models.GroupTaskSchedule
 
 @{
-    ViewData["Title"] = "RandTask";
+    ViewData["Title"] = "GroupScheduleTask";
 }
 
 <h1>RandTask</h1>
 
 <h4>GroupTaskSchedule</h4>
-<h2>These tasks are assumed daily at the users preferred contact time and using their preferred contact method</h2>
+<h6>These tasks are assumed daily at the users preferred contact time and using their preferred contact method</h6>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -21,13 +21,18 @@
                 <label asp-for="Tasks" class="control-label"></label>
                 <br /><select asp-for="Tasks" class="form-control" asp-items=ViewBag.Tasks></select>
             </div>
-            <h4>Choose a time and select time override to use a specific time and not the users preferred contact time</h4>
+            <div class="form-group" id="date">
+                <label asp-for="StartDate" class="control-label"></label>
+                <input asp-for="StartDate" type="date" class="form-control" />
+                <span asp-validation-for="StartDate" class="text-danger"></span>
+            </div>
+            <p>Choose a time and select time override to use a specific time and not the users preferred contact time</p>
             <div class="form-group" id="time">
                 <label asp-for="Time" class="control-label"></label>
                 <input asp-for="Time" type="time" class="form-control" />
                 <span asp-validation-for="Time" class="text-danger"></span>
             </div>
-            <div class="form-group" id="time">
+            <div class="form-group>
                 <label asp-for="TimeOverride" class="control-label"></label>
                 <input asp-for="TimeOverride" type="checkbox" class="form-control" />
             </div>
