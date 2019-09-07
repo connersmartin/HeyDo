@@ -264,10 +264,10 @@ namespace HeyDo.Messaging
         /// </summary>
         /// <param name="msg">Message information</param>
         /// <param name="cType">Contact type, Email or Phone</param>
-        public static void SendMessage(MessageData msg, Enums.ContactType cType, Usertask userTask)
+        public static async Task SendMessage(MessageData msg, Enums.ContactType cType, Usertask userTask)
         {
             //don't need to send a message while testing
-            if (1==1)
+            if (AppSettings.AppSetting["testmode"]=="true")
             {
                 Console.WriteLine("Done");
             }
@@ -294,8 +294,13 @@ namespace HeyDo.Messaging
             }
             if (userTask.LastScheduled)
             {
-               OnScheduledEvent(userTask.GroupTaskId);
+               await OnScheduledEvent(userTask.GroupTaskId);
             }
+        }
+
+        public static void DeleteMessage(string id)
+        {
+            BackgroundJob.Delete(id);
         }
 
 

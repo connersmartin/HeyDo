@@ -384,6 +384,19 @@ namespace HeyDo.Controllers
 
         #endregion
 
+        #region Upcoming Tasks
+        //View upcoming usertasks
+        public async Task<IActionResult> ViewUpcomingTasks()
+        {
+            return View();
+        }
+        //Be able to delete the hangfire job
+        public async Task DeleteUpcomingMessage(string id)
+        {
+
+        }
+        #endregion
+
         #region Schedule Management
         [HttpGet]
         public async Task<IActionResult> SchedTask()
@@ -426,8 +439,11 @@ namespace HeyDo.Controllers
             ts.Id = Guid.NewGuid().ToString();
             ts.UserTaskId = ut.Id;
 
-            var messageId = ScheduleNotification(ut, dict, ts);
-            //TODO update usertask message id
+            var messageId = await ScheduleNotification(ut, dict, ts);
+            //TODO update usertask message id this is the recurring job, not the individual one
+            ut.MessageId = messageId;
+            var j2Data = JsonConvert.SerializeObject(ut);
+            await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Edit, j2Data);
             
             //add the task schedule
             jData = JsonConvert.SerializeObject(ts);
@@ -661,7 +677,11 @@ namespace HeyDo.Controllers
 
             //Send out notification
             var messageId = await ScheduleNotification(userTaskList.UserTask, dict);
-            //TODO update usertask message id
+            // update usertask message id
+            userTaskList.UserTask.MessageId = messageId;
+            var j2Data = JsonConvert.SerializeObject(userTaskList.UserTask);
+            await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Edit, j2Data);
+
 
             return RedirectToAction("ViewHistory");
         }
@@ -691,8 +711,8 @@ namespace HeyDo.Controllers
             userTaskList.UserTask.SendNow = true;
 
             var messageId = await ScheduleNotification(userTaskList.UserTask, dict);
-            //TODO update usertask message id
-
+            //not necessary to update usertask message id since no action can be taken with it
+            
             return RedirectToAction("ViewHistory");
         }    
         /// <summary>
