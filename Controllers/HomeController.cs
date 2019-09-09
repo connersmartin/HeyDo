@@ -389,7 +389,22 @@ namespace HeyDo.Controllers
         //View upcoming usertasks
         public async Task<IActionResult> ViewUpcomingTasks()
         {
-            return View();
+            var dict = GetCookies();
+            var taskList = new List<Usertask>();
+            //passing a usertasklist to filter if requested
+            taskList = await GetUserTasks(dict);
+            //taskList.Sort((x, y) => DateTime.Compare(y.SendTime, x.SendTime));
+            //Only show future ones
+            taskList = taskList.OrderBy(x => x.SendTime).Where(x => x.SendTime > DateTime.Now).ToList();
+
+
+
+            if (taskList.Count == 0)
+            {
+                return View("Dashboard");
+            }
+            //maybe go to own view, prob not necessary
+            return View("ViewHistory",taskList);
         }
         //Be able to delete the hangfire job
         public async Task DeleteUpcomingMessage(string id)
@@ -619,8 +634,11 @@ namespace HeyDo.Controllers
             var taskList = new List<Usertask>();
             //passing a usertasklist to filter if requested
             taskList = await GetUserTasks(dict);
+            //taskList.Sort((x, y) => DateTime.Compare(y.SendTime, x.SendTime));
+            //Only show historic ones
+            taskList = taskList.OrderByDescending(x => x.SendTime).Where(x=>x.SendTime<=DateTime.Now).ToList();
 
-            taskList.OrderByDescending(u => u.SendTime).Where(t=>t.SendTime<DateTime.Now);
+
 
             if (taskList.Count == 0)
             {
