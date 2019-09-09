@@ -36,6 +36,7 @@ namespace HeyDo.Controllers
         [HttpGet]
         public IActionResult Index()
         {
+            ViewData["jsSettings"] = AppSettings.AppSetting["jsSettings"];
             var dict = GetCookies();
             //Check to see if logged in
             if (dict["uid"] != null && dict["token"] != null)
@@ -619,6 +620,7 @@ namespace HeyDo.Controllers
             //passing a usertasklist to filter if requested
             taskList = await GetUserTasks(dict);
 
+            taskList.OrderByDescending(u => u.SendTime).Where(t=>t.SendTime<DateTime.Now);
 
             if (taskList.Count == 0)
             {
