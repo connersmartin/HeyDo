@@ -396,20 +396,26 @@ namespace HeyDo.Controllers
             //taskList.Sort((x, y) => DateTime.Compare(y.SendTime, x.SendTime));
             //Only show future ones
             taskList = taskList.OrderBy(x => x.SendTime).Where(x => x.SendTime > DateTime.Now).ToList();
-
-
-
+                       
             if (taskList.Count == 0)
             {
-                return View("Dashboard");
+                return RedirectToAction("Dashboard");
             }
             //maybe go to own view, prob not necessary
             return View("ViewHistory",taskList);
         }
         //Be able to delete the hangfire job
-        public async Task DeleteUpcomingMessage(string id)
+        public async Task<IActionResult> DeleteUpcomingMessage(string id)
         {
+            var dict = GetCookies();
+            //Get the usertask data
+            var ut = await GetUserTasks(dict, id);
+            //Delete the usertask, bc it wouldn't be sent
+            await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Delete, id);
+            //delete from hangfire scheduler
+            MessageScheduler.DeleteMessage(ut.First().MessageId);
 
+            return RedirectToAction("ViewUpcomingTasks");
         }
         #endregion
 
@@ -702,8 +708,11 @@ namespace HeyDo.Controllers
             var j2Data = JsonConvert.SerializeObject(userTaskList.UserTask);
             await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Edit, j2Data);
 
-
-            return RedirectToAction("ViewHistory");
+            if (userTaskList.UserTask.SendNow)
+            {
+                return RedirectToAction("ViewHistory");
+            }
+            return RedirectToAction("ViewUpcomingTasks");
         }
         /// <summary>
         /// Resends a given task
@@ -717,20 +726,25 @@ namespace HeyDo.Controllers
             var dict = GetCookies();
 
             //get the usertask data
-            var userTask = await GetOrSetCachedData(dict, Enums.DataType.UserTasks, id);
-            var userTaskList = new UserTaskList()
+            var userTask = await GetOrSetCachedData(dict,Enums.DataType.UserTasks, id);
+         
+            var ut =  userTask.FirstOrDefault().ToObject<Usertask>();
+
+            //delete the already scheduled one
+            if (ut.MessageId != null)
             {
-                UserTask = userTask.FirstOrDefault().ToObject<Usertask>()
-            };
-            userTaskList.UserTask.SendTime = DateTime.Now;
-            var jData = JsonConvert.SerializeObject(userTaskList.UserTask);
+                MessageScheduler.DeleteMessage(ut.MessageId);
+                ut.MessageId = null;
+            }             
+            
+            ut.SendTime = DateTime.Now;
+            var jData = JsonConvert.SerializeObject(ut);
             //update the sent time
             await UpdateAndClearCache(dict, Enums.DataType.UserTasks,Enums.UpdateType.Edit, jData);
-            
             //send the notification now, but not updating the task
-            userTaskList.UserTask.SendNow = true;
+            ut.SendNow = true;
 
-            var messageId = await ScheduleNotification(userTaskList.UserTask, dict);
+            var messageId = await ScheduleNotification(ut, dict);
             //not necessary to update usertask message id since no action can be taken with it
             
             return RedirectToAction("ViewHistory");

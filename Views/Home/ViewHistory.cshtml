@@ -88,7 +88,8 @@
                         }
                     </td>
                 }
-                <td>@Html.ActionLink("Resend task", "ResendTask", new { id = item.Id })</td>
+                <td>@Html.ActionLink("Send task now", "ResendTask", new { id = item.Id })<br/>
+                 @if (item.SendTime > DateTime.Now) { @Html.ActionLink("Delete task", "DeleteUpcomingMessage", new { id = item.Id }); }</td>
             </tr>
         }
     </tbody>
