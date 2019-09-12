@@ -30,7 +30,6 @@ namespace HeyDo.Controllers
         {
             _cache = memoryCache;
         }
-        private readonly MessageController mc = new MessageController();
 
         #region Default Views
         [HttpGet]
@@ -387,7 +386,7 @@ namespace HeyDo.Controllers
 
         #region Upcoming Tasks
         //View upcoming usertasks
-        public async Task<IActionResult> ViewUpcomingTasks()
+        public async Task<IActionResult> ViewUpcomingTasks(string id = null)
         {
             var dict = GetCookies();
             var taskList = new List<Usertask>();
@@ -395,6 +394,10 @@ namespace HeyDo.Controllers
             taskList = await GetUserTasks(dict);
             //taskList.Sort((x, y) => DateTime.Compare(y.SendTime, x.SendTime));
             //Only show future ones
+            if (id != null)
+            {
+                taskList = taskList.FindAll(t=> t.GroupTaskId == id);
+            }
             taskList = taskList.OrderBy(x => x.SendTime).Where(x => x.SendTime > DateTime.Now).ToList();
                        
             if (taskList.Count == 0)
@@ -419,7 +422,7 @@ namespace HeyDo.Controllers
         }
         #endregion
 
-        #region Schedule Management
+        #region Scheduled Task Management
         [HttpGet]
         public async Task<IActionResult> SchedTask()
         {
@@ -490,11 +493,10 @@ namespace HeyDo.Controllers
             {
                 TaskSchedule = taskSchedule,
                 UserTaskList = new UserTaskList() {UserTask = usrtask}
-            };
+            };            
 
             string[] days = Enum.GetNames(typeof(DayOfWeek));
-
-
+            
             ViewData["ContactPreference"] = ContactEnumToList(usrtask.ContactMethod.ToString());
             ViewData["Frequency"] = FrequencyEnumToList(taskSchedule.Frequency.ToString());
             ViewData["DayFrequency"] = DayFrequencyEnumToList(taskSchedule.DayFrequency.ToString());
@@ -548,7 +550,33 @@ namespace HeyDo.Controllers
 
             return View(utsList);
         }
+        public async Task<List<TaskSchedule>> GetTaskSched(Dictionary<string, string> auth, string uid = null)
+        {
+            var data = await GetOrSetCachedData(auth, Enums.DataType.TaskSchedule, uid);
 
+            var tsList = new List<TaskSchedule>();
+            if (data?.Count > 0 && data != null)
+            {
+                if (data.FirstOrDefault().ContainsKey("Error"))
+                {
+                    Logout();
+
+                    return tsList;
+                }
+
+                foreach (var user in data)
+                {
+                    tsList.Add(user.ToObject<TaskSchedule>());
+                }
+
+                return tsList;
+            }
+
+            return tsList;
+        }
+        #endregion
+
+        #region Random Task Management
         [HttpGet]
         public async Task<IActionResult> GroupScheduleTask()
         {
@@ -598,35 +626,23 @@ namespace HeyDo.Controllers
         public async Task<IActionResult> DeleteGroupSchedule(string id)
         {
             var dict = GetCookies();
+            //delete associated upcoming usertasks
+            var uts = await GetUserTasks(dict);
+
+            foreach (var ut in uts)
+            {
+                if (ut.GroupTaskId==id & ut.SendTime > DateTime.Now)
+                {
+                    await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Delete, ut.Id);
+                }
+            }
+            //delete the group schedule
             await UpdateAndClearCache(dict, Enums.DataType.GroupSchedule, Enums.UpdateType.Delete, id);
 
             return RedirectToAction("ViewGroupScheduleTasks");
         }
 
-        public async Task<List<TaskSchedule>> GetTaskSched(Dictionary<string, string> auth, string uid = null)
-        {
-            var data = await GetOrSetCachedData(auth, Enums.DataType.TaskSchedule, uid);
-
-            var tsList = new List<TaskSchedule>();
-            if (data?.Count > 0 && data != null)
-            {
-                if (data.FirstOrDefault().ContainsKey("Error"))
-                {
-                    Logout();
-
-                    return tsList;
-                }
-
-                foreach (var user in data)
-                {
-                    tsList.Add(user.ToObject<TaskSchedule>());
-                }
-
-                return tsList;
-            }
-
-            return tsList;
-        }
+        
         #endregion
 
         #region Assignments
@@ -643,9 +659,7 @@ namespace HeyDo.Controllers
             //taskList.Sort((x, y) => DateTime.Compare(y.SendTime, x.SendTime));
             //Only show historic ones
             taskList = taskList.OrderByDescending(x => x.SendTime).Where(x=>x.SendTime<=DateTime.Now).ToList();
-
-
-
+                       
             if (taskList.Count == 0)
             {
                 return View("Dashboard");
