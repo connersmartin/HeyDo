@@ -35,10 +35,9 @@ namespace HeyDo.Messaging
             //get grouptaskschedule
             var gts = await DataController.GetData(dict, Enums.DataType.GroupSchedule, true, "/"+id);
             var groupSchedule = gts.FirstOrDefault().ToObject<GroupTaskSchedule>();
-
+            //get admin user for contact info
             var admin = await DataController.GetData(dict,Enums.DataType.AdminUser);
             var adminUserObj = admin.FirstOrDefault().ToObject<AdminUser>();
-
             var adminContact = new SimpleUser() { name = adminUserObj.name, email = adminUserObj.ReplyToEmail };
 
             //get tasks and users associated with this thing
@@ -54,11 +53,6 @@ namespace HeyDo.Messaging
                 groupTaskList.Add(tasks.Find(tk => tk["Id"].ToString() == t).ToObject<TaskItem>());
             }
 
-            //populate usertasks
-
-            //get usertasks associated with the run
-            var userTasks = await DataController.GetData(dict, Enums.DataType.UserTasks, true);
-
             //create new list of usertasks
             var groupUsertask = CreateGroupUserTaskLists(groupSchedule);
 
@@ -66,10 +60,16 @@ namespace HeyDo.Messaging
             foreach (var gut in groupUsertask)
             {
                 gut.ContactMethod = groupUserList.Find(u => u.Id == gut.UserIdAssigned).ContactPreference;
+
+                var st = gut.SendTime;
+
                 if (!groupSchedule.TimeOverride)
                 {
-                    gut.SendTime = groupUserList.Find(u => u.Id == gut.UserIdAssigned).ContactTime;
+                    st=groupUserList.Find(u => u.Id == gut.UserIdAssigned).ContactTime;                    
                 }
+                //have send time start on the 
+                gut.SendTime = new DateTime(gut.SendTime.Year, gut.SendTime.Month, gut.SendTime.Day, st.Hour, st.Minute, st.Second);
+
                 //remove if linq works properly
                 //foreach (var u in groupUserList)
                 //{
@@ -162,6 +162,13 @@ namespace HeyDo.Messaging
                 longList = userList;
                 shortList = taskList;
             }
+            //have initial time set to startdate and time
+            var startDateTime = new DateTime(groupTaskSchedule.StartDate.Year,
+                groupTaskSchedule.StartDate.Month,
+                groupTaskSchedule.StartDate.Day,
+                groupTaskSchedule.Time.Hour,
+                groupTaskSchedule.Time.Minute,
+                groupTaskSchedule.Time.Second);
 
             //random for the loop
             var rand = new Random();
@@ -189,7 +196,7 @@ namespace HeyDo.Messaging
                     {
                         Id = Guid.NewGuid().ToString(),
                         TaskId = flipped ? t.Key : t.Value,
-                        SendTime = groupTaskSchedule.Time,
+                        SendTime = startDateTime.AddDays(groupTaskSchedule.GroupTaskRun + i),
                         UserIdAssigned = flipped ? t.Value : t.Key,
                         AssignedDateTime = DateTime.Now,
                         SendNow = false,

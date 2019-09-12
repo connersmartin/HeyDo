@@ -750,7 +750,7 @@ namespace HeyDo.Controllers
             return RedirectToAction("ViewHistory");
         }    
         /// <summary>
-        /// Gets
+        /// Gets user tasks with Task name and user name instead of their ids
         /// </summary>
         /// <param name="dict"></param>
         /// <param name="id"></param>
