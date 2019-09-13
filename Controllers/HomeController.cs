@@ -440,8 +440,9 @@ namespace HeyDo.Controllers
             ViewData["DayFrequency"] = DayFrequencyEnumToList();
             ViewData["Days"] = GetDays();
             ViewData["DayOfWeek"] = DayOfWeekToList();
+            ViewData["Times"] = GetTimes();
 
-            return View(new UserTaskSchedule() { UserTaskList = new UserTaskList() { Tasks = taskSl, Times = GetTimes(), Users = userSl } });
+            return View(new UserTaskSchedule() { UserTaskList = new UserTaskList() { Tasks = taskSl, Users = userSl }, TaskSchedule = new TaskSchedule() { StartDate = DateTime.Now } });
         }
 
         [HttpPost]
@@ -585,8 +586,10 @@ namespace HeyDo.Controllers
             ViewData["Users"] = UserIdToSelectList(usr);
             var tsk = await GetTasks(dict);
             ViewData["Tasks"] = TaskIdToSelectList(tsk);
+            ViewData["Times"] = GetTimes();
 
-            return View("GroupScheduleTask");
+
+            return View("GroupScheduleTask", new GroupTaskSchedule());
         }
 
         [HttpPost]
@@ -907,13 +910,27 @@ namespace HeyDo.Controllers
         /// <returns></returns>
         public List<SelectListItem> GetTimes()
         {
-            var times = new List<SelectListItem>();
+            var times = new List<SelectListItem>();            
+           
             for (int i = 0; i < 24; i++)
             {
-                times.Add(new SelectListItem(
-                    i+":00",
-                    new DateTime(2000, 1, 1, i, 0, 0).ToShortTimeString()
-                    ));
+                var bi = "";
+                for (int j = 0; j < 60; j+=5)
+                {
+                    var bj = "";
+                    if (i<10)
+                    {
+                        bi="0";
+                    }
+                    if (j<10)
+                    {
+                        bj = "0";
+                    }
+                    times.Add(new SelectListItem(
+                        bi + i + ":" + bj + j,
+                        new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, i, j, 0).ToShortTimeString()
+                        ));
+                }
             }
 
             return times;
@@ -1003,7 +1020,7 @@ namespace HeyDo.Controllers
         public List<SelectListItem> DayOfWeekToList(string[] match = null)
         {
             bool m = false;
-            var dowList = new List<SelectListItem>();
+            var dowList = new List<SelectListItem>() { new SelectListItem("n/a", "n/a") };
             foreach (var ct in Enum.GetValues(typeof(DayOfWeek)))
             {
                 if (match !=null)
@@ -1060,8 +1077,8 @@ namespace HeyDo.Controllers
             {
                 if (dict["uid"] == null && dict["token"] == null )
                 {
-                    Set("token", b, 10);
-                    Set("uid", a, 10);
+                    Set("token", b, 720);
+                    Set("uid", a, 720);
                 }
                 return true;
             }

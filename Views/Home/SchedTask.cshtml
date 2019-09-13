@@ -46,7 +46,7 @@
             </div>
             <div class="form-group" id="time">
                 <label asp-for="UserTaskList.UserTask.SendTime" class="control-label"></label>
-                <input asp-for="UserTaskList.UserTask.SendTime" type="time" class="form-control"/>
+                <select asp-for="UserTaskList.UserTask.SendTime" class="form-control" asp-items=ViewBag.Times></select>
                 <span asp-validation-for="UserTaskList.UserTask.SendTime" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -57,7 +57,6 @@
             <div class="form-group">
                 <label asp-for="TaskSchedule.EndDate" class="control-label"></label>
                 <input asp-for="TaskSchedule.EndDate" type ="date"class="form-control" />
-                <span asp-validation-for="TaskSchedule.EndDate" class="text-danger"></span>
             </div>
 
             <div class="form-group">

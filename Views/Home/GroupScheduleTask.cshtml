@@ -14,33 +14,38 @@
         <form asp-action="RandTask">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="Users" class="control-label"></label>
-                <br /><select asp-for="Users" class="form-control" asp-items=ViewBag.Users></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="Tasks" class="control-label"></label>
-                <br /><select asp-for="Tasks" class="form-control" asp-items=ViewBag.Tasks></select>
-            </div>
-            <div class="form-group" id="date">
-                <label asp-for="StartDate" class="control-label"></label>
-                <input asp-for="StartDate" type="date" class="form-control" />
-                <span asp-validation-for="StartDate" class="text-danger"></span>
-            </div>
-            <p>Choose a time and select time override to use a specific time and not the users preferred contact time</p>
-            <div class="form-group" id="time">
-                <label asp-for="Time" class="control-label"></label>
-                <input asp-for="Time" type="time" class="form-control" />
-                <label asp-for="TimeOverride" class="control-label"></label>
-                <input asp-for="TimeOverride" type="checkbox" class="form-control" />
-            </div>
-            <div class="form-group">
-                
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+            <label asp-for="Name" class="control-label">Descriptive name</label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
     </div>
+    <div class="form-group">
+        <label asp-for="Users" class="control-label"></label>
+        <br /><select asp-for="Users" class="form-control" asp-items=ViewBag.Users></select>
+    </div>
+    <div class="form-group">
+        <label asp-for="Tasks" class="control-label"></label>
+        <br /><select asp-for="Tasks" class="form-control" asp-items=ViewBag.Tasks></select>
+    </div>
+    <div class="form-group" id="date">
+        <label asp-for="StartDate" class="control-label"></label>
+        <input asp-for="StartDate" type="date" class="form-control" />
+        <span asp-validation-for="StartDate" class="text-danger"></span>
+    </div>
+    <p>Choose a time and select time override to use a specific time and not the users preferred contact time</p>
+    <div class="form-group" id="time">
+        <label asp-for="Time" class="control-label"></label>
+        <select asp-for="Time" class="form-control" asp-items=ViewBag.Times ></select>
+        <label asp-for="TimeOverride" class="control-label"></label>
+        <input asp-for="TimeOverride" type="checkbox" class="form-control" />
+    </div>
+    <div class="form-group">
+
+    </div>
+    <div class="form-group">
+        <input type="submit" value="Create" class="btn btn-primary" />
+    </div>
+    </form>
+</div>
 </div>
 
 <div>

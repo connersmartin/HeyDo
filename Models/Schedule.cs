@@ -21,5 +21,11 @@ namespace HeyDo.Models
         public DateTime EndDate { get; set; }
         public string CancelToken { get; set; }
         public bool TimeOverride { get; set; }
+
+        public Schedule()
+        {
+            StartDate = DateTime.Now.AddDays(1);
+            Time = new DateTime(StartDate.Year, StartDate.Month, StartDate.Day, 12, 0, 0);
+        }
     }
 }

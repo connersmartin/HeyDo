@@ -15,5 +15,12 @@ namespace HeyDo.Models
         public string[] Users { get; set; }
         public string[] Tasks { get; set; }
         public int GroupTaskRun { get; set; }
+        public string Name { get; set; }
+
+        public GroupTaskSchedule()
+        {
+            StartDate = DateTime.Today;
+            //Time = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour+1, 0, 0);
+        }
     }
 }
