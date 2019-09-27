@@ -34,12 +34,9 @@ namespace HeyDo
         {
             services.AddMemoryCache();
             services.AddDistributedMemoryCache();
-            services.AddHangfire(x => x.UseFirebaseStorage(AppSettings.AppSetting["HangfireUrl"],AppSettings.AppSetting["HangfireAuth"]));
-
-
+            services.AddHangfire(configuration => configuration.UseSqlServerStorage(AppSettings.AppSetting["sqlinfo"]));
             services.AddDefaultIdentity<IdentityUser>()
                 .AddDefaultUI(UIFramework.Bootstrap4);
-            services.AddHangfireServer();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
          }
@@ -59,7 +56,8 @@ namespace HeyDo
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-         
+
+            app.UseHangfireDashboard(); // Will be available under http://localhost:5000/hangfire
             app.UseHangfireServer();
             app.UseHttpsRedirection();
             app.UseStaticFiles();
@@ -70,7 +68,6 @@ namespace HeyDo
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
-            app.UseHangfireDashboard();
         }
     }
 }
