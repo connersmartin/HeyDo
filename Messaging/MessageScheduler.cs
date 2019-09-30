@@ -286,7 +286,7 @@ namespace HeyDo.Messaging
                         //Test data
                         //var success = EmailAgent.SendMail(TestData.TestSms);
                         //Real life
-                        var emailSuccess = EmailAgent.SendMail(msg);
+                        var emailSuccess = await EmailAgent.SendMail(msg);
                         break;
                     case Enums.ContactType.Phone:
                         //Test data
@@ -307,7 +307,14 @@ namespace HeyDo.Messaging
 
         public static void DeleteMessage(string id)
         {
-            BackgroundJob.Delete(id);
+            try
+            {
+                BackgroundJob.Delete(id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
 
 
