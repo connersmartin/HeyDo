@@ -45,7 +45,7 @@
                 @Html.DisplayFor(modelItem => item.ContactPreference)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.ContactTime)
+                @item.ContactTime.ToShortTimeString()
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.email)

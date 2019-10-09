@@ -18,7 +18,6 @@
         <th>Task</th>
         <th>Day</th>
         <th>Day of Week</th>
-        <th>Day Frequency</th>
         <th>Frequency</th>
         <th>Time</th>
         <th>Start Date</th>
@@ -35,11 +34,10 @@
             <td>@Html.DisplayFor(modelItem => item.UserTaskList.UserTask.TaskId)</td>
             <td>@Html.DisplayFor(modelItem => item.TaskSchedule.DayOfMonth)</td>
             <td>@Html.DisplayFor(modelItem => item.TaskSchedule.DayOfWeek)</td>
-            <td>@Html.DisplayFor(modelItem => item.TaskSchedule.DayFrequency)</td>
             <td>@Html.DisplayFor(modelItem => item.TaskSchedule.Frequency)</td>
-            <td>@Html.DisplayFor(modelItem => item.TaskSchedule.Time)</td>
-            <td>@Html.DisplayFor(modelItem => item.TaskSchedule.StartDate)</td>
-            <td>@Html.DisplayFor(modelItem => item.TaskSchedule.EndDate)</td>
+            <td>@item.TaskSchedule.Time.ToShortTimeString()</td>
+            <td>@item.TaskSchedule.StartDate.ToShortDateString()</td>
+            <td>@item.TaskSchedule.EndDate.ToShortDateString()</td>
             <td>
                 @Html.ActionLink("Edit", "EditSched", new {id=item.TaskSchedule.Id}) |
                 @Html.ActionLink("Skip Next", "Skip", new {/*id=item.TaskSchedule.Id*/}) |

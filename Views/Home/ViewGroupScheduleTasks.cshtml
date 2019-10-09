@@ -43,13 +43,13 @@
                 @Html.DisplayFor(modelItem => item.Name)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.StartDate)
+                @item.StartDate.ToShortDateString()
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.EndDate)
+                @item.EndDate.ToShortDateString()
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Time)
+                @item.Time.ToShortTimeString()
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.TimeOverride)
