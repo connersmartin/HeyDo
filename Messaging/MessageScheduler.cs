@@ -237,7 +237,7 @@ namespace HeyDo.Messaging
                 //wait until you say so
                 else 
                 {
-                    var sendTime = new DateTimeOffset(msg.SendTime).AddDays(offset);
+                    var sendTime = msg.SendTime.AddDays(offset);
                     return BackgroundJob.Schedule(() => SendMessage(msg, userTask.ContactMethod,userTask), sendTime);
                 }
             }

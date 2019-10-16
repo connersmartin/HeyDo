@@ -341,3 +341,4 @@ healthchecksdb
 /heydosettings.json
 /.dockerignore
 /Dockerfile
+/hangfiresql.sql

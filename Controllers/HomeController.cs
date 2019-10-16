@@ -389,23 +389,8 @@ namespace HeyDo.Controllers
         public async Task<IActionResult> ViewUpcomingTasks(string id = null)
         {
             var dict = GetCookies();
-            var taskList = new List<Usertask>();
-            //passing a usertasklist to filter if requested
-            taskList = await GetUserTasks(dict);
-            //taskList.Sort((x, y) => DateTime.Compare(y.SendTime, x.SendTime));
-            //Only show future ones
-            if (id != null)
-            {
-                taskList = taskList.FindAll(t=> t.GroupTaskId == id);
-            }
-            taskList = taskList.OrderBy(x => x.SendTime).Where(x => x.SendTime > DateTime.Now).ToList();
                        
-            if (taskList.Count == 0)
-            {
-                return RedirectToAction("Dashboard");
-            }
-            //maybe go to own view, prob not necessary
-            return View("ViewHistory",taskList);
+            return RedirectToAction("ViewHistory", new { future = true, groupTaskId = id });
         }
         //Be able to delete the hangfire job
         public async Task<IActionResult> DeleteUpcomingMessage(string id)
@@ -653,19 +638,26 @@ namespace HeyDo.Controllers
         /// View all Assignments made
         /// </summary>
         /// <returns></returns>
-        public async Task<IActionResult> ViewHistory(UserTaskList userTaskList)
+        public async Task<IActionResult> ViewHistory(bool future = false, string groupTaskId = null)
         {
             var dict = GetCookies();
             var taskList = new List<Usertask>();
             //passing a usertasklist to filter if requested
             taskList = await GetUserTasks(dict);
             //taskList.Sort((x, y) => DateTime.Compare(y.SendTime, x.SendTime));
-            //Only show historic ones
-            taskList = taskList.OrderByDescending(x => x.SendTime).Where(x=>x.SendTime<=DateTime.Now).ToList();
-                       
-            if (taskList.Count == 0)
+            if (groupTaskId != null)
             {
-                return View("Dashboard");
+                taskList.FindAll(x => x.GroupTaskId == groupTaskId);
+            }
+            //Only show historic ones
+            if (!future)
+            {
+                taskList = taskList.OrderByDescending(x => x.SendTime).Where(x=>x.SendTime<=DateTime.Now).ToList();
+
+            }
+            else
+            {
+                taskList = taskList.OrderByDescending(x => x.SendTime).Where(x => x.SendTime > DateTime.Now).ToList();
             }
 
             return View(taskList);
@@ -1044,7 +1036,7 @@ namespace HeyDo.Controllers
         {
             Remove("uid");
             Remove("token");
-            return View("Index");
+            return RedirectToAction("Index");
         }
 
         //Not used right now, implement?
