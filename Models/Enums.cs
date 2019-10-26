@@ -31,7 +31,8 @@ namespace HeyDo.Models
         {
             Add,
             Edit,
-            Delete
+            Delete,
+            Clear
         }
 
         public enum Frequency

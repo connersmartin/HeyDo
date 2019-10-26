@@ -754,6 +754,7 @@ namespace HeyDo.Controllers
             ut.SendNow = true;
 
             var messageId = await ScheduleNotification(ut, dict);
+            await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Clear);
             //not necessary to update usertask message id since no action can be taken with it
             
             return RedirectToAction("ViewHistory");
@@ -822,7 +823,7 @@ namespace HeyDo.Controllers
             var authed = auth["uid"] == await AuthController.Google(auth["token"]);
             if (!authed)
             {
-                Logout();
+                RedirectToAction("Logout");
             }
             var data = new List<JObject>();
             var uData = new List<JObject>();

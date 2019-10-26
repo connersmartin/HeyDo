@@ -53,8 +53,14 @@ namespace HeyDo.Messaging
                 groupTaskList.Add(tasks.Find(tk => tk["Id"].ToString() == t).ToObject<TaskItem>());
             }
 
+            //TODO
+            //Don't allow last scheduled to be run multiple times
+            //LastScheduledCheck
+
+
             //create new list of usertasks
             var groupUsertask = CreateGroupUserTaskLists(groupSchedule);
+
 
             //add the contact preference to the usertasks
             foreach (var gut in groupUsertask)
@@ -82,6 +88,7 @@ namespace HeyDo.Messaging
                 //create the userTask in db
                 var utData = JsonConvert.SerializeObject(gut);
                 await DataController.AddData(dict, Enums.DataType.UserTasks, utData, false, true);
+
             }
             //for debugging purposes
             foreach (var g in groupUsertask)
@@ -127,6 +134,31 @@ namespace HeyDo.Messaging
 
             //if lastscheduled
             //populate next messages
+        }
+
+        public static async Task CheckLastMessage()
+        {
+            ////get usertasks to update
+            //var uts = await DataController.GetData(dict, Enums.DataType.UserTasks, true);
+
+            //foreach (var u in uts)
+            //{
+            //    if (u["LastScheduled"].ToString() == "True"
+            //        && u["GroupTaskRun"].ToString() == groupSchedule.GroupTaskRun.ToString()
+            //        && u["GroupTaskId"].ToString() == id)
+
+            //    {
+            //        u["LastScheduled"] = "False";
+
+            //        await DataController.AddData(dict, Enums.DataType.UserTasks, u.ToString(), true, true);
+            //    }
+            //}
+
+            //update other usertasks
+
+
+            //update other usertasks on the last run so we don't schedule multiple times
+            //await DataController.AddData(dict, Enums.DataType.UserTasks, "", true, true);
         }
 
         public static void PopulateNextRun()
