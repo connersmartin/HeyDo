@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using FirebaseAdmin;
 using FirebaseAdmin.Auth;
 using Google.Apis.Auth.OAuth2;
+using HeyDo.Data;
 
 namespace HeyDo.Controllers
 {
@@ -42,6 +43,23 @@ namespace HeyDo.Controllers
         {
             //Unsure if this would ever need to be used
             FirebaseApp.DefaultInstance.Delete();
-        }       
+        }   
+        
+        public static async Task<Dictionary<string,string>> GetAdminAuth(string id)
+        {
+            var dict = new Dictionary<string, string>()
+            {
+                { "uid",null },
+                {"token",null }
+            };
+
+            //Get the necessary data
+            //get usergroupschedule via dataaccess
+            var ugs = await DataAccess.ApiGoogle("GET", null, "/UserGroupSchedule/" + id, dict, true);
+            //uid to auth to find the data properly
+            dict["uid"] = ugs["u"].ToString();
+
+            return dict;
+        }
     }
 }

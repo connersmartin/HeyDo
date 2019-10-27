@@ -14,24 +14,11 @@ namespace HeyDo.Messaging
     {
         public static async Task OnScheduledEvent(string id)
         {
-            //need an empty auth
-            var dict = new Dictionary<string, string>()
-            {
-                { "uid",null },
-                {"token",null }
-            };
             var groupUserList = new List<User>();
             var groupTaskList = new List<TaskItem>();
 
             //This could be used to have scheduled events get scheduled one by one
-            //need to figure out how this could/should be done when thinking about authentication.
-            //master user?
-
-            //Get the necessary data
-            //get usergroupschedule via dataaccess
-            var ugs = await DataAccess.ApiGoogle("GET", null, "/UserGroupSchedule/" + id, dict, true);
-            //uid to auth to find the data properly
-            dict["uid"] = ugs["u"].ToString();
+            var dict = await AuthController.GetAdminAuth(id);
             //get grouptaskschedule
             var gts = await DataController.GetData(dict, Enums.DataType.GroupSchedule, true, "/"+id);
             var groupSchedule = gts.FirstOrDefault().ToObject<GroupTaskSchedule>();
@@ -53,14 +40,8 @@ namespace HeyDo.Messaging
                 groupTaskList.Add(tasks.Find(tk => tk["Id"].ToString() == t).ToObject<TaskItem>());
             }
 
-            //TODO
-            //Don't allow last scheduled to be run multiple times
-            //LastScheduledCheck
-
-
             //create new list of usertasks
             var groupUsertask = CreateGroupUserTaskLists(groupSchedule);
-
 
             //add the contact preference to the usertasks
             foreach (var gut in groupUsertask)
@@ -112,8 +93,6 @@ namespace HeyDo.Messaging
             //2.have a random assortment of the users assign the task or vice versa
             //3.on subsequent runs, remove those users/tasks from the available list
 
-
-
             //schedule messages
             var offsetOffset = groupUsertask.Min(g => g.GroupTaskRun);
             foreach (var gu in groupUsertask)
@@ -131,41 +110,8 @@ namespace HeyDo.Messaging
                     await DataController.AddData(dict, Enums.DataType.GroupSchedule,jsData,true,true);
                 }
             }
-
-            //if lastscheduled
-            //populate next messages
         }
 
-        public static async Task CheckLastMessage()
-        {
-            ////get usertasks to update
-            //var uts = await DataController.GetData(dict, Enums.DataType.UserTasks, true);
-
-            //foreach (var u in uts)
-            //{
-            //    if (u["LastScheduled"].ToString() == "True"
-            //        && u["GroupTaskRun"].ToString() == groupSchedule.GroupTaskRun.ToString()
-            //        && u["GroupTaskId"].ToString() == id)
-
-            //    {
-            //        u["LastScheduled"] = "False";
-
-            //        await DataController.AddData(dict, Enums.DataType.UserTasks, u.ToString(), true, true);
-            //    }
-            //}
-
-            //update other usertasks
-
-
-            //update other usertasks on the last run so we don't schedule multiple times
-            //await DataController.AddData(dict, Enums.DataType.UserTasks, "", true, true);
-        }
-
-        public static void PopulateNextRun()
-        {
-            //this could be used to populate the next run of a grouptaskschedule
-
-        }
         public static List<Usertask> CreateGroupUserTaskLists(GroupTaskSchedule groupTaskSchedule, List<Usertask> userTasks = null)
         {
             var groupUserTasks = new List<Usertask>();
@@ -279,7 +225,16 @@ namespace HeyDo.Messaging
                 //TODO finish this, figure out logic
                 RecurringJob.AddOrUpdate(taskSchedule.Id, () => SendMessage(msg, userTask.ContactMethod,userTask), freq);
                 return taskSchedule.Id;
+
+                //or do we schedule one at a time?
+                //ScheduleNextMessage
             }
+        }
+
+        public static void PopulateNextRun()
+        {
+            //this could be used to populate the next run of a grouptaskschedule
+
         }
 
         public static string GetCronString(TaskSchedule taskSchedule)
@@ -333,9 +288,40 @@ namespace HeyDo.Messaging
             }
             if (userTask.LastScheduled)
             {
-               await OnScheduledEvent(userTask.GroupTaskId);
+                //Clear all other last messages in this group
+                await CheckLastMessage(userTask);
+                //Schedule the next event(s)
+                await OnScheduledEvent(userTask.GroupTaskId);
             }
         }
+
+        public static async Task CheckLastMessage(Usertask userTask)
+        {
+            //use admin auth since we've already gotten to this point
+            var dict = await AuthController.GetAdminAuth(userTask.GroupTaskId);
+            //get usertasks to update
+            var uts = await DataController.GetData(dict, Enums.DataType.UserTasks, true);
+            var userTasks = new List<Usertask>();
+            foreach (var ut in uts)
+            {
+                userTasks.Add(ut.ToObject<Usertask>());
+            }
+            //iterate over userTasks to find the potentially matching ones
+            foreach (var u in userTasks)
+            {
+                if (u.LastScheduled == true
+                    && u.GroupTaskRun == userTask.GroupTaskRun
+                    && u.GroupTaskId == userTask.GroupTaskId)
+
+                {
+                    //change lastscheduled to false and update it!
+                    u.LastScheduled  = false;
+                    var jData = JsonConvert.SerializeObject(u);
+                    await DataController.AddData(dict, Enums.DataType.UserTasks, jData, true, true);
+                }
+            }
+        }
+
 
         public static void DeleteMessage(string id)
         {
