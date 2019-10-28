@@ -57,26 +57,12 @@ namespace HeyDo.Messaging
                 //have send time start on the 
                 gut.SendTime = new DateTime(gut.SendTime.Year, gut.SendTime.Month, gut.SendTime.Day, st.Hour, st.Minute, st.Second);
 
-                //remove if linq works properly
-                //foreach (var u in groupUserList)
-                //{
-                //   if (gut.UserIdAssigned==u.Id)
-                //  {
-                //     gut.ContactMethod = u.ContactPreference;
-                //}
-                //}
-
                 //create the userTask in db
                 var utData = JsonConvert.SerializeObject(gut);
                 await DataController.AddData(dict, Enums.DataType.UserTasks, utData, false, true);
 
             }
-            //for debugging purposes
-            foreach (var g in groupUsertask)
-            {
-                Console.WriteLine("UserId: {0} is going to be sent a {1} to do {2} for Group Run {3}", g.UserIdAssigned, g.ContactMethod, g.TaskId, g.GroupTaskRun);
-            }
-
+            
             //if count(usertasks for this grouptaskschedule) == whichever is greater users/tasks
             //if the run has been completed delete the old schedule and create a new one?
             //ie if all users have cycled through the tasks
@@ -92,7 +78,7 @@ namespace HeyDo.Messaging
             //1.find out how many runs it will take
             //2.have a random assortment of the users assign the task or vice versa
             //3.on subsequent runs, remove those users/tasks from the available list
-
+            var lastSet = false;
             //schedule messages
             var offsetOffset = groupUsertask.Min(g => g.GroupTaskRun);
             foreach (var gu in groupUsertask)
@@ -102,8 +88,9 @@ namespace HeyDo.Messaging
 
 
                 ScheduleMessage(adminContact, userObj, taskObj, gu, null, gu.GroupTaskRun-offsetOffset);
-                if (gu.LastScheduled)
+                if (gu.LastScheduled && !lastSet)
                 {
+                    lastSet = true;
                     //update grouptask run 
                     groupSchedule.GroupTaskRun = gu.GroupTaskRun;
                     var jsData = JsonConvert.SerializeObject(groupSchedule);
@@ -227,14 +214,41 @@ namespace HeyDo.Messaging
                 return taskSchedule.Id;
 
                 //or do we schedule one at a time?
+                //need to figure out how this will work with send once things
+                //return BackgroundJob.Schedule(() => SendMessage(msg, userTask.ContactMethod, userTask), NextRun(taskSchedule, userTask, userObj));
                 //ScheduleNextMessage
             }
         }
 
-        public static void PopulateNextRun()
+        public static DateTime NextRun(TaskSchedule ts, Usertask ut, User u)
         {
             //this could be used to populate the next run of a grouptaskschedule
+            //Get last run time, will need to add to correct data later
+            var lastRunTime = DateTime.Now;
+            if (ut.SendNow)
+            {
+                lastRunTime =  ts.TimeOverride ? ts.Time : u.ContactTime;
+            }
+            else
+            {
+                lastRunTime = ut.SendTime;
+            }
 
+            //need to figure out the next x of when it should send based off of taskschedule or somehow from the last scheduled 
+
+            switch (ts.Frequency)
+            {
+                case Enums.Frequency.Daily:
+                    return lastRunTime.AddDays(1);                    
+                case Enums.Frequency.Weekly:
+                    return lastRunTime.AddDays(7);                    
+                case Enums.Frequency.Monthly:
+                    return lastRunTime.AddMonths(1);
+                default:
+                    break;
+            }
+
+            return DateTime.Now;
         }
 
         public static string GetCronString(TaskSchedule taskSchedule)
@@ -270,15 +284,9 @@ namespace HeyDo.Messaging
                 switch (cType)
                 {
                     case Enums.ContactType.Email:
-                        //Test data
-                        //var success = EmailAgent.SendMail(TestData.TestSms);
-                        //Real life
                         var emailSuccess = await EmailAgent.SendMail(msg);
                         break;
                     case Enums.ContactType.Phone:
-                        //Test data
-                        //SmsAgent.TwiSend(TestData.TestSms);
-                        //Real life
                         var smsSuccess = SmsAgent.TwiSend(msg);
                         break;
                     default:
@@ -288,8 +296,10 @@ namespace HeyDo.Messaging
             }
             if (userTask.LastScheduled)
             {
-                //Clear all other last messages in this group
+                //Clear all other lastScheduled flags in this group
                 await CheckLastMessage(userTask);
+                //increment the grouptask run
+                
                 //Schedule the next event(s)
                 await OnScheduledEvent(userTask.GroupTaskId);
             }
@@ -320,6 +330,13 @@ namespace HeyDo.Messaging
                     await DataController.AddData(dict, Enums.DataType.UserTasks, jData, true, true);
                 }
             }
+            //increment grouptaskrun
+            var gts = await DataController.GetData(dict, Enums.DataType.GroupSchedule, true, "/" + userTask.GroupTaskId);
+            var groupSchedule = gts.FirstOrDefault().ToObject<GroupTaskSchedule>();
+
+            groupSchedule.GroupTaskRun = userTask.GroupTaskRun+1;
+            var jsData = JsonConvert.SerializeObject(groupSchedule);
+            await DataController.AddData(dict, Enums.DataType.GroupSchedule, jsData, true, true);
         }
 
 

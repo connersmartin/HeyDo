@@ -386,7 +386,7 @@ namespace HeyDo.Controllers
 
         #region Upcoming Tasks
         //View upcoming usertasks
-        public async Task<IActionResult> ViewUpcomingTasks(string id = null)
+        public  IActionResult ViewUpcomingTasks(string id = null)
         {
             var dict = GetCookies();
                        
@@ -582,7 +582,7 @@ namespace HeyDo.Controllers
         {
             var dict = GetCookies();
             groupTaskSchedule.Id = Guid.NewGuid().ToString();
-            groupTaskSchedule.GroupTaskRun = 0;
+            groupTaskSchedule.GroupTaskRun = 1;
             //get users
             var userList = await GetUsers(dict);
             //get tasks
@@ -598,6 +598,7 @@ namespace HeyDo.Controllers
             //would need to figure out how to randomly schedule a task
             //something like OnScheduledTask but NextRandomTask
             await MessageScheduler.OnScheduledEvent(groupTaskSchedule.Id);
+            await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Clear);
             return RedirectToAction("ViewGroupScheduleTasks");
         }
 
@@ -736,7 +737,6 @@ namespace HeyDo.Controllers
 
             //get the usertask data
             var userTask = await GetOrSetCachedData(dict,Enums.DataType.UserTasks, id);
-         
             var ut =  userTask.FirstOrDefault().ToObject<Usertask>();
 
             //delete the already scheduled one
@@ -816,6 +816,16 @@ namespace HeyDo.Controllers
             //You have been logged out
             //connection timeout
             return View();
+        }
+
+        public IActionResult Resync()
+        {
+            var dict = GetCookies();
+            foreach (var dataType in Enum.GetValues(typeof(Enums.DataType)))
+            {
+                _cache.Remove(dict["uid"] + dataType);
+            }
+            return RedirectToAction("Dashboard");
         }
 
         private async Task<List<JObject>> GetOrSetCachedData(Dictionary<string, string> auth, Enums.DataType dataType, string id = null)
