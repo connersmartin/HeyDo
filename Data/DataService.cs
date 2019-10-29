@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace HeyDo.Controllers
+namespace HeyDo.Data
 {
-    public class DataController : Controller
+    public class DataService
     {
         /// <summary>
         /// Adds data to Google

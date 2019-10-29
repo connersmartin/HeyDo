@@ -32,7 +32,7 @@ namespace HeyDo.Data
             if (!isIt && authed)
             {
                 // Key not in cache, so get data.
-                data = await DataController.GetData(auth, dataType);
+                data = await DataService.GetData(auth, dataType);
                 if (data.Count > 0)
                 {
                     // Save data in cache if no error
@@ -57,13 +57,13 @@ namespace HeyDo.Data
             switch (updateType)
             {
                 case Enums.UpdateType.Add:
-                    await DataController.AddData(auth, dataType, jData, false);
+                    await DataService.AddData(auth, dataType, jData, false);
                     break;
                 case Enums.UpdateType.Edit:
-                    await DataController.AddData(auth, dataType, jData, true);
+                    await DataService.AddData(auth, dataType, jData, true);
                     break;
                 case Enums.UpdateType.Delete:
-                    await DataController.DeleteData(auth, dataType, "/" + jData);
+                    await DataService.DeleteData(auth, dataType, "/" + jData);
                     break;
                 default:
                     break;

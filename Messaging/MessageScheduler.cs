@@ -20,16 +20,16 @@ namespace HeyDo.Messaging
             //This could be used to have scheduled events get scheduled one by one
             var dict = await AuthController.GetAdminAuth(id);
             //get grouptaskschedule
-            var gts = await DataController.GetData(dict, Enums.DataType.GroupSchedule, true, "/"+id);
+            var gts = await DataService.GetData(dict, Enums.DataType.GroupSchedule, true, "/"+id);
             var groupSchedule = gts.FirstOrDefault().ToObject<GroupTaskSchedule>();
             //get admin user for contact info
-            var admin = await DataController.GetData(dict,Enums.DataType.AdminUser);
+            var admin = await DataService.GetData(dict,Enums.DataType.AdminUser);
             var adminUserObj = admin.FirstOrDefault().ToObject<AdminUser>();
             var adminContact = new SimpleUser() { name = adminUserObj.name, email = adminUserObj.ReplyToEmail };
 
             //get tasks and users associated with this thing
-            var users = await DataController.GetData(dict, Enums.DataType.Users, true);
-            var tasks = await DataController.GetData(dict, Enums.DataType.Tasks, true);
+            var users = await DataService.GetData(dict, Enums.DataType.Users, true);
+            var tasks = await DataService.GetData(dict, Enums.DataType.Tasks, true);
             //populate users and tasks for this group schedule
             foreach (var u in groupSchedule.Users)
             {
@@ -59,7 +59,7 @@ namespace HeyDo.Messaging
 
                 //create the userTask in db
                 var utData = JsonConvert.SerializeObject(gut);
-                await DataController.AddData(dict, Enums.DataType.UserTasks, utData, false, true);
+                await DataService.AddData(dict, Enums.DataType.UserTasks, utData, false, true);
 
             }
             
@@ -94,7 +94,7 @@ namespace HeyDo.Messaging
                     //update grouptask run 
                     groupSchedule.GroupTaskRun = gu.GroupTaskRun;
                     var jsData = JsonConvert.SerializeObject(groupSchedule);
-                    await DataController.AddData(dict, Enums.DataType.GroupSchedule,jsData,true,true);
+                    await DataService.AddData(dict, Enums.DataType.GroupSchedule,jsData,true,true);
                 }
             }
         }
@@ -310,7 +310,7 @@ namespace HeyDo.Messaging
             //use admin auth since we've already gotten to this point
             var dict = await AuthController.GetAdminAuth(userTask.GroupTaskId);
             //get usertasks to update
-            var uts = await DataController.GetData(dict, Enums.DataType.UserTasks, true);
+            var uts = await DataService.GetData(dict, Enums.DataType.UserTasks, true);
             var userTasks = new List<Usertask>();
             foreach (var ut in uts)
             {
@@ -327,16 +327,16 @@ namespace HeyDo.Messaging
                     //change lastscheduled to false and update it!
                     u.LastScheduled  = false;
                     var jData = JsonConvert.SerializeObject(u);
-                    await DataController.AddData(dict, Enums.DataType.UserTasks, jData, true, true);
+                    await DataService.AddData(dict, Enums.DataType.UserTasks, jData, true, true);
                 }
             }
             //increment grouptaskrun
-            var gts = await DataController.GetData(dict, Enums.DataType.GroupSchedule, true, "/" + userTask.GroupTaskId);
+            var gts = await DataService.GetData(dict, Enums.DataType.GroupSchedule, true, "/" + userTask.GroupTaskId);
             var groupSchedule = gts.FirstOrDefault().ToObject<GroupTaskSchedule>();
 
             groupSchedule.GroupTaskRun = userTask.GroupTaskRun+1;
             var jsData = JsonConvert.SerializeObject(groupSchedule);
-            await DataController.AddData(dict, Enums.DataType.GroupSchedule, jsData, true, true);
+            await DataService.AddData(dict, Enums.DataType.GroupSchedule, jsData, true, true);
         }
 
 
