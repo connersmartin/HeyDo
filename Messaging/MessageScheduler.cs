@@ -161,7 +161,7 @@ namespace HeyDo.Messaging
                     {
                         Id = Guid.NewGuid().ToString(),
                         TaskId = flipped ? t.Key : t.Value,
-                        SendTime = startDateTime.AddDays(groupTaskSchedule.GroupTaskRun + i),
+                        SendTime = startDateTime.AddDays(groupTaskSchedule.GroupTaskRun + i - 1),
                         UserIdAssigned = flipped ? t.Value : t.Key,
                         AssignedDateTime = DateTime.Now,
                         SendNow = false,

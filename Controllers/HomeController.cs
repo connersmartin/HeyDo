@@ -294,7 +294,7 @@ namespace HeyDo.Controllers
 
             foreach (var item in selectList)
             {
-                if (item.Value == task.FirstOrDefault().UserId.ToString())
+                if (item.Value == task.FirstOrDefault().UserId)
                 {
                     item.Selected = true;
                     break;
