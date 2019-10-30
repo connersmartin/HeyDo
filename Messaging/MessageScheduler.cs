@@ -257,12 +257,12 @@ namespace HeyDo.Messaging
             switch (taskSchedule.Frequency)
             {
                 case Enums.Frequency.Daily:
-                    return string.Format("0 {0} * * 0-6", taskSchedule.Time.Hour.ToString());
+                    return string.Format("{1} {0} * * 0-6", taskSchedule.Time.Hour.ToString(), taskSchedule.Time.Minute.ToString());
                 case Enums.Frequency.Weekly:
                     var ds = taskSchedule.DayOfWeek.Select(s => s.ToString().ToUpper().Substring(0, 3));
-                    return string.Format("0 {0} * * {1}", taskSchedule.Time.Hour.ToString(), string.Join(',', ds));
+                    return string.Format("{1} {0} * * {2}", taskSchedule.Time.Hour.ToString(), taskSchedule.Time.Minute.ToString(), string.Join(',', ds));
                 case Enums.Frequency.Monthly:
-                    return string.Format("0 {0} {1} * *", taskSchedule.Time.Hour.ToString(), taskSchedule.DayOfMonth);
+                    return string.Format("{1} {0} {2} * *", taskSchedule.Time.Hour.ToString(), taskSchedule.Time.Minute.ToString(), taskSchedule.DayOfMonth);
                 default:
                     return "";
             }
