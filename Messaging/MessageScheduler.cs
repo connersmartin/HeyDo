@@ -210,7 +210,7 @@ namespace HeyDo.Messaging
             {
                 var freq = GetCronString(taskSchedule);
                 //TODO finish this, figure out logic
-                RecurringJob.AddOrUpdate(taskSchedule.Id, () => SendMessage(msg, userTask.ContactMethod,userTask), freq);
+                RecurringJob.AddOrUpdate(taskSchedule.Id, () => SendMessage(msg, userTask.ContactMethod,userTask), freq, TimeZoneInfo.Local);
                 return taskSchedule.Id;
 
                 //or do we schedule one at a time?
