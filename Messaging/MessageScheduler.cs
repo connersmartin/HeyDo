@@ -7,12 +7,21 @@ using HeyDo.Data;
 using HeyDo.Controllers;
 using Newtonsoft.Json;
 using Hangfire;
+using Microsoft.Extensions.Logging;
 
 namespace HeyDo.Messaging
 {
-    public static class MessageScheduler
+    public class MessageScheduler
     {
-        public static async Task OnScheduledEvent(string id)
+        private ILogger _logger;
+        private DataService _ds;
+
+        public MessageScheduler(ILogger<DataService> logger, DataService ds)
+        {
+            _logger = logger;
+            _ds = ds;
+        }
+        public async Task OnScheduledEvent(string id)
         {
             var groupUserList = new List<User>();
             var groupTaskList = new List<TaskItem>();
@@ -20,16 +29,16 @@ namespace HeyDo.Messaging
             //This could be used to have scheduled events get scheduled one by one
             var dict = await AuthController.GetAdminAuth(id);
             //get grouptaskschedule
-            var gts = await DataService.GetData(dict, Enums.DataType.GroupSchedule, true, "/"+id);
+            var gts = await _ds.GetData(dict, Enums.DataType.GroupSchedule, true, "/"+id);
             var groupSchedule = gts.FirstOrDefault().ToObject<GroupTaskSchedule>();
             //get admin user for contact info
-            var admin = await DataService.GetData(dict,Enums.DataType.AdminUser);
+            var admin = await _ds.GetData(dict,Enums.DataType.AdminUser);
             var adminUserObj = admin.FirstOrDefault().ToObject<AdminUser>();
             var adminContact = new SimpleUser() { name = adminUserObj.name, email = adminUserObj.ReplyToEmail };
 
             //get tasks and users associated with this thing
-            var users = await DataService.GetData(dict, Enums.DataType.Users, true);
-            var tasks = await DataService.GetData(dict, Enums.DataType.Tasks, true);
+            var users = await _ds.GetData(dict, Enums.DataType.Users, true);
+            var tasks = await _ds.GetData(dict, Enums.DataType.Tasks, true);
             //populate users and tasks for this group schedule
             foreach (var u in groupSchedule.Users)
             {
@@ -59,7 +68,7 @@ namespace HeyDo.Messaging
 
                 //create the userTask in db
                 var utData = JsonConvert.SerializeObject(gut);
-                await DataService.AddData(dict, Enums.DataType.UserTasks, utData, false, true);
+                await _ds.AddData(dict, Enums.DataType.UserTasks, utData, false, true);
 
             }
             
@@ -94,12 +103,12 @@ namespace HeyDo.Messaging
                     //update grouptask run 
                     groupSchedule.GroupTaskRun = gu.GroupTaskRun;
                     var jsData = JsonConvert.SerializeObject(groupSchedule);
-                    await DataService.AddData(dict, Enums.DataType.GroupSchedule,jsData,true,true);
+                    await _ds.AddData(dict, Enums.DataType.GroupSchedule,jsData,true,true);
                 }
             }
         }
 
-        public static List<Usertask> CreateGroupUserTaskLists(GroupTaskSchedule groupTaskSchedule, List<Usertask> userTasks = null)
+        public List<Usertask> CreateGroupUserTaskLists(GroupTaskSchedule groupTaskSchedule, List<Usertask> userTasks = null)
         {
             var groupUserTasks = new List<Usertask>();
 
@@ -176,7 +185,7 @@ namespace HeyDo.Messaging
             return groupUserTasks;
         }
 
-        public static string ScheduleMessage(SimpleUser adminContact, User userObj, TaskItem taskObj, Usertask userTask, TaskSchedule taskSchedule, int offset=0)
+        public string ScheduleMessage(SimpleUser adminContact, User userObj, TaskItem taskObj, Usertask userTask, TaskSchedule taskSchedule, int offset=0)
         {
             //TODO create a template for htmlcontent
 
@@ -272,7 +281,7 @@ namespace HeyDo.Messaging
         /// </summary>
         /// <param name="msg">Message information</param>
         /// <param name="cType">Contact type, Email or Phone</param>
-        public static async Task SendMessage(MessageData msg, Enums.ContactType cType, Usertask userTask)
+        public async Task SendMessage(MessageData msg, Enums.ContactType cType, Usertask userTask)
         {
             //don't need to send a message while testing
             if (AppSettings.AppSetting["testmode"]=="true")
@@ -305,12 +314,12 @@ namespace HeyDo.Messaging
             }
         }
 
-        public static async Task CheckLastMessage(Usertask userTask)
+        public async Task CheckLastMessage(Usertask userTask)
         {
             //use admin auth since we've already gotten to this point
             var dict = await AuthController.GetAdminAuth(userTask.GroupTaskId);
             //get usertasks to update
-            var uts = await DataService.GetData(dict, Enums.DataType.UserTasks, true);
+            var uts = await _ds.GetData(dict, Enums.DataType.UserTasks, true);
             var userTasks = new List<Usertask>();
             foreach (var ut in uts)
             {
@@ -327,20 +336,20 @@ namespace HeyDo.Messaging
                     //change lastscheduled to false and update it!
                     u.LastScheduled  = false;
                     var jData = JsonConvert.SerializeObject(u);
-                    await DataService.AddData(dict, Enums.DataType.UserTasks, jData, true, true);
+                    await _ds.AddData(dict, Enums.DataType.UserTasks, jData, true, true);
                 }
             }
             //increment grouptaskrun
-            var gts = await DataService.GetData(dict, Enums.DataType.GroupSchedule, true, "/" + userTask.GroupTaskId);
+            var gts = await _ds.GetData(dict, Enums.DataType.GroupSchedule, true, "/" + userTask.GroupTaskId);
             var groupSchedule = gts.FirstOrDefault().ToObject<GroupTaskSchedule>();
 
             groupSchedule.GroupTaskRun = userTask.GroupTaskRun+1;
             var jsData = JsonConvert.SerializeObject(groupSchedule);
-            await DataService.AddData(dict, Enums.DataType.GroupSchedule, jsData, true, true);
+            await _ds.AddData(dict, Enums.DataType.GroupSchedule, jsData, true, true);
         }
 
 
-        public static void DeleteMessage(string id)
+        public void DeleteMessage(string id)
         {
             try
             {

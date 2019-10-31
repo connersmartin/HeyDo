@@ -19,16 +19,24 @@ using Hangfire;
 using Cronos;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Localization.Internal;
+using Microsoft.Extensions.Logging;
 
 namespace HeyDo.Controllers
 {
     public class HomeController : Controller
     {
         private IMemoryCache _cache;
+        private ILogger _logger;
+        private DataService _ds;
+        private MessageScheduler _ms;
         
-        public HomeController(IMemoryCache memoryCache)
+        public HomeController(IMemoryCache memoryCache, ILogger<HomeController> logger,
+                            DataService ds, MessageScheduler ms)
         {
             _cache = memoryCache;
+            _logger = logger;
+            _ds = ds;
+            _ms = ms;
         }
 
         #region Default Views
@@ -401,7 +409,7 @@ namespace HeyDo.Controllers
             //Delete the usertask, bc it wouldn't be sent
             await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Delete, id);
             //delete from hangfire scheduler
-            MessageScheduler.DeleteMessage(ut.First().MessageId);
+            _ms.DeleteMessage(ut.First().MessageId);
 
             return RedirectToAction("ViewUpcomingTasks");
         }
@@ -597,7 +605,7 @@ namespace HeyDo.Controllers
             //magic
             //would need to figure out how to randomly schedule a task
             //something like OnScheduledTask but NextRandomTask
-            await MessageScheduler.OnScheduledEvent(groupTaskSchedule.Id);
+            await _ms.OnScheduledEvent(groupTaskSchedule.Id);
             await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Clear);
             return RedirectToAction("ViewGroupScheduleTasks");
         }
@@ -742,7 +750,7 @@ namespace HeyDo.Controllers
             //delete the already scheduled one
             if (ut.MessageId != null)
             {
-                MessageScheduler.DeleteMessage(ut.MessageId);
+                _ms.DeleteMessage(ut.MessageId);
                 ut.MessageId = null;
             }             
             
@@ -843,7 +851,7 @@ namespace HeyDo.Controllers
             if (!isIt && authed)
             {
                 // Key not in cache, so get data.
-                data = await DataService.GetData(auth, dataType);
+                data = await _ds.GetData(auth, dataType);
                 if (data.Count>0)
                 { 
                     // Save data in cache if no error
@@ -868,13 +876,13 @@ namespace HeyDo.Controllers
             switch (updateType)
             {
                 case Enums.UpdateType.Add:
-                    await DataService.AddData(auth, dataType, jData, false);                    
+                    await _ds.AddData(auth, dataType, jData, false);                    
                     break;
                 case Enums.UpdateType.Edit:
-                    await DataService.AddData(auth, dataType, jData, true);
+                    await _ds.AddData(auth, dataType, jData, true);
                     break;
                 case Enums.UpdateType.Delete:
-                    await DataService.DeleteData(auth, dataType, "/" + jData);
+                    await _ds.DeleteData(auth, dataType, "/" + jData);
                     break;
                 default:
                     break;
@@ -901,7 +909,7 @@ namespace HeyDo.Controllers
             var taskObj = task.First().ToObject<TaskItem>();
 
             //Make message
-            return MessageScheduler.ScheduleMessage(adminContact, userObj, taskObj, userTask, taskSchedule);
+            return _ms.ScheduleMessage(adminContact, userObj, taskObj, userTask, taskSchedule);
             
         }
 

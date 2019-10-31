@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using HeyDo.Data;
 using HeyDo.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -12,6 +13,13 @@ namespace HeyDo.Data
 {
     public class DataService
     {
+        private readonly ILogger _logger;
+
+        public DataService(ILogger<DataService> logger)
+        {
+            _logger = logger;
+        }
+                
         /// <summary>
         /// Adds data to Google
         /// </summary>
@@ -19,7 +27,7 @@ namespace HeyDo.Data
         /// <param name="auth">Google auth token</param>
         /// <param name="dataType">User, Task, Usertask</param>
         /// <returns></returns>
-        internal static async Task<string> AddData(Dictionary<string, string> auth, Enums.DataType dataType, string jData, bool update = false, bool admin = false)
+        internal async Task<string> AddData(Dictionary<string, string> auth, Enums.DataType dataType, string jData, bool update = false, bool admin = false)
         {
             var obData = JsonConvert.DeserializeObject<JObject>(jData);
             var url = dataType + "/" + auth["uid"] + "/" + obData["Id"];
@@ -27,7 +35,7 @@ namespace HeyDo.Data
             var action = update ? "PATCH" : "PUT";
 
             var res = await DataAccess.ApiGoogle(action, jData, url, auth,admin);
-
+            _logger.LogInformation("{0} {1} {2}", dataType.ToString(), action, jData);
             return res.ToString();            
         }
         /// <summary>
@@ -37,7 +45,7 @@ namespace HeyDo.Data
         /// <param name="auth">Google atuh token</param>
         /// <param name="dataType">User, Task, Usertask</param>
         /// <returns></returns>
-        internal static async Task<List<JObject>> GetData(Dictionary<string, string> auth, Enums.DataType dataType, bool admin = false,
+        internal async Task<List<JObject>> GetData(Dictionary<string, string> auth, Enums.DataType dataType, bool admin = false,
             string id = null)
         {
             var list = new List<JObject>();
@@ -76,11 +84,11 @@ namespace HeyDo.Data
         /// <param name="auth"></param>
         /// <param name="dataType"></param>
         /// <returns>something maybe</returns>
-        internal static async Task<string> DeleteData(Dictionary<string, string> auth, Enums.DataType dataType, string id, bool admin = false)
+        internal async Task<string> DeleteData(Dictionary<string, string> auth, Enums.DataType dataType, string id, bool admin = false)
         {
             var url = dataType + "/" + auth["uid"] + "/"+id;
             var data = await DataAccess.ApiGoogle("DELETE", "", url, auth,admin);
-
+            _logger.LogInformation("{0} {1} {2}", dataType.ToString(), "DELETE", id);
             return data.ToString();
         }
 

@@ -17,6 +17,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Hangfire;
 using Microsoft.Extensions.Caching.Memory;
+using HeyDo.Messaging;
+using HeyDo.Controllers;
 
 namespace HeyDo
 {
@@ -34,6 +36,9 @@ namespace HeyDo
         {
             services.AddMemoryCache();
             services.AddDistributedMemoryCache();
+            services.AddTransient<DataService>();
+            services.AddTransient<MessageScheduler>();
+            services.AddTransient<HomeController>();
             services.AddHangfire(configuration => configuration.UseSqlServerStorage(AppSettings.AppSetting["sqlinfo"]));
             services.AddDefaultIdentity<IdentityUser>()
                 .AddDefaultUI(UIFramework.Bootstrap4);

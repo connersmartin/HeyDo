@@ -1,6 +1,7 @@
 ﻿using HeyDo.Controllers;
 using HeyDo.Models;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -13,9 +14,13 @@ namespace HeyDo.Data
     {
         //TODO use this somehow
         private IMemoryCache _cache;
-        public Caching(IMemoryCache memoryCache)
+        private ILogger _logger;
+        private DataService _ds;
+        public Caching(IMemoryCache memoryCache, ILogger<Caching> logger, DataService ds)
         {
             _cache = memoryCache;
+            _logger = logger;
+            _ds = ds;
         }
         private async Task<List<JObject>> GetOrSetCachedData(Dictionary<string, string> auth, Enums.DataType dataType, string id = null)
         {
@@ -32,7 +37,7 @@ namespace HeyDo.Data
             if (!isIt && authed)
             {
                 // Key not in cache, so get data.
-                data = await DataService.GetData(auth, dataType);
+                data = await _ds.GetData(auth, dataType);
                 if (data.Count > 0)
                 {
                     // Save data in cache if no error
@@ -57,13 +62,13 @@ namespace HeyDo.Data
             switch (updateType)
             {
                 case Enums.UpdateType.Add:
-                    await DataService.AddData(auth, dataType, jData, false);
+                    await _ds.AddData(auth, dataType, jData, false);
                     break;
                 case Enums.UpdateType.Edit:
-                    await DataService.AddData(auth, dataType, jData, true);
+                    await _ds.AddData(auth, dataType, jData, true);
                     break;
                 case Enums.UpdateType.Delete:
-                    await DataService.DeleteData(auth, dataType, "/" + jData);
+                    await _ds.DeleteData(auth, dataType, "/" + jData);
                     break;
                 default:
                     break;

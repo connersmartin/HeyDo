@@ -23,6 +23,8 @@ namespace HeyDo
             {
                 logging.ClearProviders();
                 logging.AddConsole();
+                logging.AddDebug();
+                logging.AddEventSourceLogger();
             })
                 .UseStartup<Startup>()
             .UseKestrel();
