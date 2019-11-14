@@ -301,16 +301,20 @@ namespace HeyDo.Messaging
                     default:
                         break;
                 }
-
             }
+
+            _logger.LogInformation("{0} sent for Usertask {1}", cType.ToString(), userTask.Id);
+
             if (userTask.LastScheduled)
             {
                 //Clear all other lastScheduled flags in this group
                 await CheckLastMessage(userTask);
                 //increment the grouptask run
-                
+                _logger.LogInformation("Usertask {0} was run to repopulate GroupTaskId {1} for GroupTaskRun {2}",
+                                        userTask.Id, userTask.GroupTaskId, userTask.GroupTaskRun);
                 //Schedule the next event(s)
                 await OnScheduledEvent(userTask.GroupTaskId);
+                _logger.LogInformation("After repopulated");
             }
         }
 
