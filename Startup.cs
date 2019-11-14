@@ -4,12 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using HeyDo.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
@@ -35,14 +33,18 @@ namespace HeyDo
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+
             services.AddMemoryCache();
             services.AddDistributedMemoryCache();
             services.AddTransient<DataService>();
             services.AddTransient<MessageScheduler>();
             services.AddTransient<HomeController>();
-            services.AddHangfire(configuration => configuration.UseSqlServerStorage(AppSettings.AppSetting["sqlinfo"]));
-            services.AddDefaultIdentity<IdentityUser>()
-                .AddDefaultUI(UIFramework.Bootstrap4);
+            //use hangfire
+            
+            services.AddHangfire(configuration => configuration.UseFirebaseStorage(AppSettings.AppSetting["HangFireUrl"], AppSettings.AppSetting["HangFireAuth"]));
+
+            //use sql
+            //services.AddHangfire(configuration => configuration.UseSqlServerStorage(AppSettings.AppSetting["sqlinfo"]));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
          }
@@ -53,8 +55,6 @@ namespace HeyDo
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseDatabaseErrorPage();
-
             }
             else
             {
