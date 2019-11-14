@@ -19,14 +19,18 @@ namespace HeyDo
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-            .ConfigureLogging(logging => 
+            .ConfigureAppConfiguration((context, logging) =>
+            {
+                logging.AddJsonFile("appsettings.json",false);
+            })
+            .ConfigureLogging((context,logging) => 
             {
                 logging.ClearProviders();
-                logging.AddFilter("Microsoft", LogLevel.Warning);
-                logging.AddFilter("Hangfire", LogLevel.Information);
-
+                //logging.AddFilter("Microsoft", LogLevel.Warning);
+                //logging.AddFilter("Hangfire", LogLevel.Warning);
+                logging.AddConfiguration(context.Configuration.GetSection("Logging"));
                 logging.AddConsole();
-
+                
                 logging.AddDebug();
                 logging.AddEventSourceLogger();
             })
