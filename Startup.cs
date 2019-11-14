@@ -19,6 +19,7 @@ using Hangfire;
 using Microsoft.Extensions.Caching.Memory;
 using HeyDo.Messaging;
 using HeyDo.Controllers;
+using Microsoft.Extensions.Logging;
 
 namespace HeyDo
 {
@@ -47,7 +48,7 @@ namespace HeyDo
          }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
@@ -61,7 +62,7 @@ namespace HeyDo
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
+            loggerFactory.AddFile("C:/app/Logs/HeyDo--{Date}.txt");
             app.UseHangfireDashboard(); // Will be available under http://localhost:5000/hangfire
             app.UseHangfireServer();
             app.UseHttpsRedirection();
