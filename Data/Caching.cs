@@ -22,12 +22,12 @@ namespace HeyDo.Data
             _logger = logger;
             _ds = ds;
         }
-        private async Task<List<JObject>> GetOrSetCachedData(Dictionary<string, string> auth, Enums.DataType dataType, string id = null)
+         public async Task<List<JObject>> GetOrSetCachedData(Dictionary<string, string> auth, Enums.DataType dataType, string id = null)
         {
             var authed = auth["uid"] == await AuthController.Google(auth["token"]);
             if (!authed)
             {
-                //Logout();
+                return new List<JObject>() { new JObject("Error", "Error") };
             }
             var data = new List<JObject>();
             var uData = new List<JObject>();
@@ -38,14 +38,14 @@ namespace HeyDo.Data
             {
                 // Key not in cache, so get data.
                 data = await _ds.GetData(auth, dataType);
-                if (data.Count > 0)
-                {
+                if (data.Count>0)
+                { 
                     // Save data in cache if no error
                     _cache.Set(auth["uid"] + dataType, data);
                 }
             }
 
-            if (id != null && data.Count > 0)
+            if (id != null && data.Count>0)
             {
                 var task = data.Find(u => u["Id"].ToString() == id);
                 uData.Add(task);
@@ -55,14 +55,14 @@ namespace HeyDo.Data
             return data;
         }
 
-        private async Task UpdateAndClearCache(Dictionary<string, string> auth, Enums.DataType dataType, Enums.UpdateType updateType, string jData = null)
+        public async Task UpdateAndClearCache(Dictionary<string, string> auth, Enums.DataType dataType, Enums.UpdateType updateType, string jData=null)
         {
             _cache.Remove(auth["uid"] + dataType);
 
             switch (updateType)
             {
                 case Enums.UpdateType.Add:
-                    await _ds.AddData(auth, dataType, jData, false);
+                    await _ds.AddData(auth, dataType, jData, false);                    
                     break;
                 case Enums.UpdateType.Edit:
                     await _ds.AddData(auth, dataType, jData, true);
