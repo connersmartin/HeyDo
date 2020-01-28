@@ -188,6 +188,8 @@ namespace HeyDo.Messaging
         public string ScheduleMessage(SimpleUser adminContact, User userObj, TaskItem taskObj, Usertask userTask, TaskSchedule taskSchedule, int offset=0)
         {
             //TODO create a template for htmlcontent
+            //This will create an html email that looks nice
+            //var email = new EmailContent(taskObj);
 
             var msg = new MessageData()
             {
