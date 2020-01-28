@@ -581,10 +581,12 @@ namespace HeyDo.Controllers
             ViewData["Tasks"] = TaskIdToSelectList(tsk);
             ViewData["Times"] = GetTimes();
 
-
-            return View("GroupScheduleTask", new GroupTaskSchedule());
+            //Disable view since super buggy right now
+            //return View("GroupScheduleTask", new GroupTaskSchedule());
+            return View("Dashboard");
         }
 
+        //Not used right now
         [HttpPost]
         public async Task<IActionResult> GroupScheduleTask(GroupTaskSchedule groupTaskSchedule)
         {
@@ -610,6 +612,7 @@ namespace HeyDo.Controllers
             return RedirectToAction("ViewGroupScheduleTasks");
         }
 
+        //Not used right now
         [HttpGet]
         public async Task<IActionResult> ViewGroupScheduleTasks()
         {
@@ -620,6 +623,7 @@ namespace HeyDo.Controllers
             return View(groupTaskSchedules);
         }
 
+        //Unnecessary since not creating them
         public async Task<IActionResult> DeleteGroupSchedule(string id)
         {
             var dict = GetCookies();
