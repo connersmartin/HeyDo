@@ -25,18 +25,18 @@ namespace HeyDo.Controllers
 {
     public class HomeController : Controller
     {
-        private IMemoryCache _cache;
         private ILogger _logger;
         private DataService _ds;
         private MessageScheduler _ms;
+        private Caching _data;
         
-        public HomeController(IMemoryCache memoryCache, ILogger<HomeController> logger,
-                            DataService ds, MessageScheduler ms)
+        public HomeController(ILogger<HomeController> logger,
+                            DataService ds, MessageScheduler ms, Caching data)
         {
-            _cache = memoryCache;
             _logger = logger;
             _ds = ds;
             _ms = ms;
+            _data = data;
         }
 
         #region Default Views
@@ -110,7 +110,7 @@ namespace HeyDo.Controllers
             user.Id = Guid.NewGuid().ToString();
             var dict = GetCookies();
             var jData = JsonConvert.SerializeObject(user);
-            await UpdateAndClearCache(dict, Enums.DataType.Users, Enums.UpdateType.Add, jData);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.Users, Enums.UpdateType.Add, jData);
 
             return RedirectToAction("ViewUsers");
         }
@@ -142,7 +142,7 @@ namespace HeyDo.Controllers
         {
             var dict = GetCookies();
             var jData = JsonConvert.SerializeObject(user);
-            await UpdateAndClearCache(dict, Enums.DataType.Users, Enums.UpdateType.Edit, jData);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.Users, Enums.UpdateType.Edit, jData);
             return RedirectToAction("ViewUsers");
         }
 
@@ -150,7 +150,7 @@ namespace HeyDo.Controllers
         public async Task<IActionResult> DeleteUser(string Id)
         {
             var dict = GetCookies();
-            await UpdateAndClearCache(dict, Enums.DataType.Users, Enums.UpdateType.Delete, "/" + Id);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.Users, Enums.UpdateType.Delete, "/" + Id);
             return RedirectToAction("ViewUsers");
         }
 
@@ -173,7 +173,7 @@ namespace HeyDo.Controllers
         /// <returns></returns>
         public async Task<List<User>> GetUsers(Dictionary<string, string> auth, string uid = null)
         {
-            var data = await GetOrSetCachedData(auth, Enums.DataType.Users, uid);
+            var data = await _data.GetOrSetCachedData(auth, Enums.DataType.Users, uid);
 
             var userList = new List<User>();
             if (data?.Count > 0 && data != null)
@@ -221,7 +221,7 @@ namespace HeyDo.Controllers
             user.Id = Guid.NewGuid().ToString();
             var dict = GetCookies();
             var jData = JsonConvert.SerializeObject(user);
-            await UpdateAndClearCache(dict, Enums.DataType.AdminUser, Enums.UpdateType.Add, jData);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.AdminUser, Enums.UpdateType.Add, jData);
 
             return RedirectToAction("Dashboard");
         }
@@ -246,13 +246,13 @@ namespace HeyDo.Controllers
         {
             var dict = GetCookies();
             var jData = JsonConvert.SerializeObject(user);
-            await UpdateAndClearCache(dict, Enums.DataType.AdminUser, Enums.UpdateType.Edit, jData);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.AdminUser, Enums.UpdateType.Edit, jData);
             return RedirectToAction("Dashboard");
         }
 
         public async Task<AdminUser> GetAdmin(Dictionary<string, string> auth, string uid = null)
         {
-            var data = await GetOrSetCachedData(auth, Enums.DataType.AdminUser);
+            var data = await _data.GetOrSetCachedData(auth, Enums.DataType.AdminUser);
             if (data == null)
             {
                 Logout();
@@ -286,7 +286,7 @@ namespace HeyDo.Controllers
             task.Id = Guid.NewGuid().ToString();
             var dict = GetCookies();
             var jData = JsonConvert.SerializeObject(task);
-            await UpdateAndClearCache(dict, Enums.DataType.Tasks, Enums.UpdateType.Add, jData);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.Tasks, Enums.UpdateType.Add, jData);
 
             return RedirectToAction("ViewTasks");
         }
@@ -320,7 +320,7 @@ namespace HeyDo.Controllers
         {
             var dict = GetCookies();
             var jData = JsonConvert.SerializeObject(task);
-            await UpdateAndClearCache(dict, Enums.DataType.Tasks, Enums.UpdateType.Edit, jData);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.Tasks, Enums.UpdateType.Edit, jData);
 
             return RedirectToAction("ViewTasks");
         }
@@ -329,7 +329,7 @@ namespace HeyDo.Controllers
         public async Task<IActionResult> DeleteTask(string Id)
         {
             var dict = GetCookies();
-            await UpdateAndClearCache(dict, Enums.DataType.Tasks, Enums.UpdateType.Delete, Id);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.Tasks, Enums.UpdateType.Delete, Id);
 
             return RedirectToAction("ViewTasks");
         }
@@ -368,7 +368,7 @@ namespace HeyDo.Controllers
         public async Task<List<TaskItem>> GetTasks(Dictionary<string, string> auth, string id = null)
         {
 
-            var data = await GetOrSetCachedData(auth, Enums.DataType.Tasks, id);
+            var data = await _data.GetOrSetCachedData(auth, Enums.DataType.Tasks, id);
 
             var taskList = new List<TaskItem>();
 
@@ -407,7 +407,7 @@ namespace HeyDo.Controllers
             //Get the usertask data
             var ut = await GetUserTasks(dict, id);
             //Delete the usertask, bc it wouldn't be sent
-            await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Delete, id);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Delete, id);
             //delete from hangfire scheduler
             _ms.DeleteMessage(ut.First().MessageId);
 
@@ -453,7 +453,7 @@ namespace HeyDo.Controllers
 
             var jData = JsonConvert.SerializeObject(ut);
             //add the usertask
-            await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Add, jData);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Add, jData);
 
             ts.Id = Guid.NewGuid().ToString();
             ts.UserTaskId = ut.Id;
@@ -462,11 +462,11 @@ namespace HeyDo.Controllers
             //TODO update usertask message id this is the recurring job, not the individual one
             ut.MessageId = messageId;
             var j2Data = JsonConvert.SerializeObject(ut);
-            await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Edit, j2Data);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Edit, j2Data);
             
             //add the task schedule
             jData = JsonConvert.SerializeObject(ts);
-            await UpdateAndClearCache(dict, Enums.DataType.TaskSchedule, Enums.UpdateType.Add, jData);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.TaskSchedule, Enums.UpdateType.Add, jData);
 
 
             return RedirectToAction("ViewSched");
@@ -477,7 +477,7 @@ namespace HeyDo.Controllers
         {
             var dict = GetCookies();
            
-            var uts = await GetOrSetCachedData(dict, Enums.DataType.TaskSchedule, id);
+            var uts = await _data.GetOrSetCachedData(dict, Enums.DataType.TaskSchedule, id);
             //could do empty check, but this is editing one, so we know it exists
             var taskSchedule = uts.FirstOrDefault().ToObject<TaskSchedule>();
 
@@ -507,7 +507,7 @@ namespace HeyDo.Controllers
             var jData = JsonConvert.SerializeObject(userTaskSchedule.TaskSchedule);
             //I think we need to delete it then add a new one
 
-            await UpdateAndClearCache(dict, Enums.DataType.TaskSchedule, Enums.UpdateType.Edit, jData);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.TaskSchedule, Enums.UpdateType.Edit, jData);
             //schedule new one
             return RedirectToAction("ViewSched");
         }
@@ -518,7 +518,7 @@ namespace HeyDo.Controllers
             var dict = GetCookies();
             RecurringJob.RemoveIfExists(id);
             //delete from db
-            await UpdateAndClearCache(dict, Enums.DataType.TaskSchedule, Enums.UpdateType.Delete, id);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.TaskSchedule, Enums.UpdateType.Delete, id);
             //Remove from hangfire
             return RedirectToAction("ViewSched");
         }
@@ -546,7 +546,7 @@ namespace HeyDo.Controllers
         }
         public async Task<List<TaskSchedule>> GetTaskSched(Dictionary<string, string> auth, string uid = null)
         {
-            var data = await GetOrSetCachedData(auth, Enums.DataType.TaskSchedule, uid);
+            var data = await _data.GetOrSetCachedData(auth, Enums.DataType.TaskSchedule, uid);
 
             var tsList = new List<TaskSchedule>();
             if (data?.Count > 0 && data != null)
@@ -599,7 +599,7 @@ namespace HeyDo.Controllers
             var taskList = await GetTasks(dict);
             //create the grouptaskschedule
             var jData = JsonConvert.SerializeObject(groupTaskSchedule);
-            await UpdateAndClearCache(dict, Enums.DataType.GroupSchedule, Enums.UpdateType.Add,jData);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.GroupSchedule, Enums.UpdateType.Add,jData);
             //create the usergroupschedule
             var kData = JsonConvert.SerializeObject(new { Id = groupTaskSchedule.Id, u = dict["uid"] });
             //use dataaccess instead of controller
@@ -608,7 +608,7 @@ namespace HeyDo.Controllers
             //would need to figure out how to randomly schedule a task
             //something like OnScheduledTask but NextRandomTask
             await _ms.OnScheduledEvent(groupTaskSchedule.Id);
-            await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Clear);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Clear);
             return RedirectToAction("ViewGroupScheduleTasks");
         }
 
@@ -617,7 +617,7 @@ namespace HeyDo.Controllers
         public async Task<IActionResult> ViewGroupScheduleTasks()
         {
             var dict = GetCookies();
-            var gts = await GetOrSetCachedData(dict, Enums.DataType.GroupSchedule);
+            var gts = await _data.GetOrSetCachedData(dict, Enums.DataType.GroupSchedule);
             var groupTaskSchedules = gts.Select(g => g.ToObject<GroupTaskSchedule>()).ToList();
             
             return View(groupTaskSchedules);
@@ -634,11 +634,11 @@ namespace HeyDo.Controllers
             {
                 if (ut.GroupTaskId==id & ut.SendTime > DateTime.Now)
                 {
-                    await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Delete, ut.Id);
+                    await _data.UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Delete, ut.Id);
                 }
             }
             //delete the group schedule
-            await UpdateAndClearCache(dict, Enums.DataType.GroupSchedule, Enums.UpdateType.Delete, id);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.GroupSchedule, Enums.UpdateType.Delete, id);
 
             return RedirectToAction("ViewGroupScheduleTasks");
         }
@@ -721,14 +721,14 @@ namespace HeyDo.Controllers
             var dict = GetCookies();
             var jData = JsonConvert.SerializeObject(userTaskList.UserTask);
 
-            await UpdateAndClearCache(dict, Enums.DataType.UserTasks,Enums.UpdateType.Add, jData);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.UserTasks,Enums.UpdateType.Add, jData);
 
             //Send out notification
             var messageId = await ScheduleNotification(userTaskList.UserTask, dict);
             // update usertask message id
             userTaskList.UserTask.MessageId = messageId;
             var j2Data = JsonConvert.SerializeObject(userTaskList.UserTask);
-            await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Edit, j2Data);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Edit, j2Data);
 
             if (userTaskList.UserTask.SendNow)
             {
@@ -748,7 +748,7 @@ namespace HeyDo.Controllers
             var dict = GetCookies();
 
             //get the usertask data
-            var userTask = await GetOrSetCachedData(dict,Enums.DataType.UserTasks, id);
+            var userTask = await _data.GetOrSetCachedData(dict,Enums.DataType.UserTasks, id);
             var ut =  userTask.FirstOrDefault().ToObject<Usertask>();
 
             //delete the already scheduled one
@@ -761,12 +761,12 @@ namespace HeyDo.Controllers
             ut.SendTime = DateTime.Now;
             var jData = JsonConvert.SerializeObject(ut);
             //update the sent time
-            await UpdateAndClearCache(dict, Enums.DataType.UserTasks,Enums.UpdateType.Edit, jData);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.UserTasks,Enums.UpdateType.Edit, jData);
             //send the notification now, but not updating the task
             ut.SendNow = true;
 
             var messageId = await ScheduleNotification(ut, dict);
-            await UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Clear);
+            await _data.UpdateAndClearCache(dict, Enums.DataType.UserTasks, Enums.UpdateType.Clear);
             //not necessary to update usertask message id since no action can be taken with it
             
             return RedirectToAction("ViewHistory");
@@ -780,7 +780,7 @@ namespace HeyDo.Controllers
         public async Task<List<Usertask>> GetUserTasks(Dictionary<string, string> dict,  string id = null)
         {
 
-            var data = await GetOrSetCachedData(dict, Enums.DataType.UserTasks,id);
+            var data = await _data.GetOrSetCachedData(dict, Enums.DataType.UserTasks,id);
             var users = await GetUsers(dict);
             var tasks = await GetTasks(dict);
 
@@ -832,66 +832,16 @@ namespace HeyDo.Controllers
 
         public IActionResult Resync()
         {
-            var dict = GetCookies();
-            foreach (var dataType in Enum.GetValues(typeof(Enums.DataType)))
-            {
-                _cache.Remove(dict["uid"] + dataType);
-            }
+            //var dict = GetCookies();
+            //foreach (var dataType in Enum.GetValues(typeof(Enums.DataType)))
+            //{
+            //    _cache.Remove(dict["uid"] + dataType);
+            //}
             return RedirectToAction("Dashboard");
         }
 
-        private async Task<List<JObject>> GetOrSetCachedData(Dictionary<string, string> auth, Enums.DataType dataType, string id = null)
-        {
-            var authed = auth["uid"] == await AuthController.Google(auth["token"]);
-            if (!authed)
-            {
-                RedirectToAction("Logout");
-            }
-            var data = new List<JObject>();
-            var uData = new List<JObject>();
 
-            var isIt = _cache.TryGetValue(auth["uid"] + dataType, out data);
 
-            if (!isIt && authed)
-            {
-                // Key not in cache, so get data.
-                data = await _ds.GetData(auth, dataType);
-                if (data.Count>0)
-                { 
-                    // Save data in cache if no error
-                    _cache.Set(auth["uid"] + dataType, data);
-                }
-            }
-
-            if (id != null && data.Count>0)
-            {
-                var task = data.Find(u => u["Id"].ToString() == id);
-                uData.Add(task);
-                return uData;
-            }
-
-            return data;
-        }
-
-        private async Task UpdateAndClearCache(Dictionary<string, string> auth, Enums.DataType dataType, Enums.UpdateType updateType, string jData=null)
-        {
-            _cache.Remove(auth["uid"] + dataType);
-
-            switch (updateType)
-            {
-                case Enums.UpdateType.Add:
-                    await _ds.AddData(auth, dataType, jData, false);                    
-                    break;
-                case Enums.UpdateType.Edit:
-                    await _ds.AddData(auth, dataType, jData, true);
-                    break;
-                case Enums.UpdateType.Delete:
-                    await _ds.DeleteData(auth, dataType, "/" + jData);
-                    break;
-                default:
-                    break;
-            }
-        }
         //TODO put this in the message scheduler
         /// <summary>
         /// Schedules the notification to be sent 
@@ -906,10 +856,10 @@ namespace HeyDo.Controllers
             var adminContact = new SimpleUser() { name = adminUserObj.name, email = adminUserObj.ReplyToEmail };
 
             //get contact info
-            var user = await GetOrSetCachedData(dict, Enums.DataType.Users, userTask.UserIdAssigned);
+            var user = await _data.GetOrSetCachedData(dict, Enums.DataType.Users, userTask.UserIdAssigned);
             var userObj = user.First().ToObject<User>();
             //get task
-            var task = await GetOrSetCachedData(dict, Enums.DataType.Tasks, userTask.TaskId);
+            var task = await _data.GetOrSetCachedData(dict, Enums.DataType.Tasks, userTask.TaskId);
             var taskObj = task.First().ToObject<TaskItem>();
 
             //Make message

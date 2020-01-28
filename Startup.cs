@@ -39,8 +39,12 @@ namespace HeyDo
             services.AddTransient<DataService>();
             services.AddTransient<MessageScheduler>();
             services.AddTransient<HomeController>();
+            services.AddTransient<Caching>();
+
+
             //use hangfire
-            
+
+
             services.AddHangfire(configuration => configuration.UseFirebaseStorage(AppSettings.AppSetting["HangFireUrl"], AppSettings.AppSetting["HangFireAuth"]));
 
             //use sql

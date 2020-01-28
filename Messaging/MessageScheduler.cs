@@ -290,16 +290,19 @@ namespace HeyDo.Messaging
             }
             else
             {
-                switch (cType)
+                if (userTask.SendTime < DateTime.Now.AddHours(23))
                 {
-                    case Enums.ContactType.Email:
-                        var emailSuccess = await EmailAgent.SendMail(msg);
-                        break;
-                    case Enums.ContactType.Phone:
-                        var smsSuccess = SmsAgent.TwiSend(msg);
-                        break;
-                    default:
-                        break;
+                    switch (cType)
+                    {
+                        case Enums.ContactType.Email:
+                            var emailSuccess = await EmailAgent.SendMail(msg);
+                            break;
+                        case Enums.ContactType.Phone:
+                            var smsSuccess = SmsAgent.TwiSend(msg);
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
 
