@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace HeyDo.Models
 {
@@ -18,6 +19,7 @@ namespace HeyDo.Models
         public string TaskId { get; set; }
         public string MessageId { get; set; }
         public bool Complete { get; set; }
+        [DataType(DataType.DateTime)]
         public DateTime SendTime { get; set; }
         public bool Passed { get; set; }
         public string UserIdAssigned { get; set; }

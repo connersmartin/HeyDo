@@ -309,7 +309,8 @@ namespace HeyDo.Messaging
             }
 
             _logger.LogInformation("{0} sent for Usertask {1}", cType.ToString(), userTask.Id);
-
+            //omitting this for now since it was causing issues
+            /*
             if (userTask.LastScheduled)
             {
                 //Clear all other lastScheduled flags in this group
@@ -321,6 +322,7 @@ namespace HeyDo.Messaging
                 await OnScheduledEvent(userTask.GroupTaskId);
                 _logger.LogInformation("After repopulated");
             }
+            */
         }
 
         public async Task CheckLastMessage(Usertask userTask)
