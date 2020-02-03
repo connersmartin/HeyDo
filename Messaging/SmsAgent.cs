@@ -31,6 +31,8 @@ namespace HeyDo.Messaging
                 to: new Twilio.Types.PhoneNumber("+1"+messageData.to.First().email)
             );
 
+            //TODO, decipher error/success codes to return success or failure
+
             return message.Sid;
 
         }

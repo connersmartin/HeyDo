@@ -39,6 +39,8 @@ namespace HeyDo.Messaging
                                                     Encoding.UTF8,
                                                     "application/json");
                 var res = await client.SendAsync(request);
+                //TODO, decipher error/success codes to return success or failure
+
                 return await res.Content.ReadAsStringAsync();
             }
         }

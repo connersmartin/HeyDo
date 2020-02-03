@@ -28,7 +28,8 @@ namespace HeyDo.Models
         public DateTime AssignedDateTime { get; set; }
         public DateTime CompletedDateTime { get; set; }
         public bool SendNow { get; set; }
-        public string CancelToken { get; set; }
+        public bool MessageSent { get; set; }
+        public string UidToken { get; set; }
         public string LastTaskId { get; set; }
         public string GroupTaskId { get; set; }
         public int GroupTaskRun { get; set; }

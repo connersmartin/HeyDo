@@ -187,7 +187,6 @@ namespace HeyDo.Messaging
 
         public string ScheduleMessage(SimpleUser adminContact, User userObj, TaskItem taskObj, Usertask userTask, TaskSchedule taskSchedule, int offset=0)
         {
-            //TODO create a template for htmlcontent
             //This will create an html email that looks nice
             var email = new EmailData(taskObj, userObj);
 
@@ -292,7 +291,7 @@ namespace HeyDo.Messaging
             }
             else
             {
-                if (userTask.SendTime < DateTime.Now.AddHours(23))
+                if (userTask.SendTime < DateTime.Now.AddHours(23) && !userTask.MessageSent)
                 {
                     switch (cType)
                     {
@@ -308,6 +307,19 @@ namespace HeyDo.Messaging
                 }
             }
 
+            //need to decipher success rresponses to determine
+
+            userTask.MessageSent = true;
+            //this is basically what admin auth does, why not change it/remove it?
+            var dict = new Dictionary<string, string>()
+            {
+                {"uid",userTask.UidToken },
+                {"token",null }
+            };
+            var json = JsonConvert.SerializeObject(userTask);
+            //update this message to being sent
+            //this also removes the messageid which should be fine
+            await _ds.AddData(dict, Enums.DataType.UserTasks, json, true, true);
             _logger.LogInformation("{0} sent for Usertask {1}", cType.ToString(), userTask.Id);
             //omitting this for now since it was causing issues
             /*

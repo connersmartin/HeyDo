@@ -447,6 +447,7 @@ namespace HeyDo.Controllers
 
             ut.AssignedDateTime = DateTime.Now;
             ut.Id = Guid.NewGuid().ToString();
+            ut.UidToken = dict["uid"];
             ut.Complete = false;
 
             ts.Time = ut.SendTime;
@@ -705,6 +706,8 @@ namespace HeyDo.Controllers
         [HttpPost]
         public async Task<IActionResult> AssignTask(UserTaskList userTaskList)
         {
+            var dict = GetCookies();
+            userTaskList.UserTask.UidToken = dict["uid"];
             userTaskList.UserTask.Id = Guid.NewGuid().ToString();
             userTaskList.UserTask.AssignedDateTime = DateTime.Now;
             userTaskList.UserTask.Complete = false;
@@ -720,7 +723,6 @@ namespace HeyDo.Controllers
             }
             */
 
-            var dict = GetCookies();
             var jData = JsonConvert.SerializeObject(userTaskList.UserTask);
 
             await _data.UpdateAndClearCache(dict, Enums.DataType.UserTasks,Enums.UpdateType.Add, jData);
@@ -758,8 +760,8 @@ namespace HeyDo.Controllers
             {
                 _ms.DeleteMessage(ut.MessageId);
                 ut.MessageId = null;
-            }             
-            
+            }
+            ut.UidToken = dict["uid"];
             ut.SendTime = DateTime.Now;
             var jData = JsonConvert.SerializeObject(ut);
             //update the sent time
@@ -863,7 +865,7 @@ namespace HeyDo.Controllers
             //get task
             var task = await _data.GetOrSetCachedData(dict, Enums.DataType.Tasks, userTask.TaskId);
             var taskObj = task.First().ToObject<TaskItem>();
-
+            
             //Make message
             return _ms.ScheduleMessage(adminContact, userObj, taskObj, userTask, taskSchedule);
             
