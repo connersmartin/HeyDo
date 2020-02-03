@@ -713,10 +713,12 @@ namespace HeyDo.Controllers
                 userTaskList.UserTask.SendTime = DateTime.Now;
             }
 
+            /*
             if (userTaskList.UserTask.SendTime < DateTime.Now && !userTaskList.UserTask.SendNow)
             {
                 userTaskList.UserTask.SendTime = userTaskList.UserTask.SendTime.AddDays(1);
             }
+            */
 
             var dict = GetCookies();
             var jData = JsonConvert.SerializeObject(userTaskList.UserTask);

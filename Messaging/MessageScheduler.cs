@@ -213,8 +213,8 @@ namespace HeyDo.Messaging
                 //wait until you say so
                 else 
                 {
-                    var sendTime = msg.SendTime.AddDays(offset);
-                    return BackgroundJob.Schedule(() => SendMessage(msg, userTask.ContactMethod,userTask), sendTime);
+                    var offSet = msg.SendTime - DateTime.Now;
+                    return BackgroundJob.Schedule(() => SendMessage(msg, userTask.ContactMethod,userTask), offSet);
                 }
             }
             else
