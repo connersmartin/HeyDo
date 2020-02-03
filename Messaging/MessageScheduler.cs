@@ -189,7 +189,7 @@ namespace HeyDo.Messaging
         {
             //TODO create a template for htmlcontent
             //This will create an html email that looks nice
-            //var email = new EmailContent(taskObj);
+            var email = new EmailData(taskObj, userObj);
 
             var msg = new MessageData()
             {
@@ -197,7 +197,7 @@ namespace HeyDo.Messaging
                 tags = new[] { taskObj.Title },
                 sender = adminContact,
                 to = new[] { new SimpleUser() { name = userObj.name, email = userTask.ContactMethod == Enums.ContactType.Email ? userObj.email : userObj.Phone } },
-                htmlContent = taskObj.TaskDetails,
+                htmlContent = email.BodyTemplate,
                 textContent = taskObj.TaskDetails,
                 subject = taskObj.Title,
                 replyTo = adminContact,
